@@ -8,9 +8,10 @@ cursor = conn.cursor()
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS ble_rssi (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL,
         mac TEXT NOT NULL,
-        rssi INTEGER NOT NULL,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        device_name TEXT NOT NULL,
+        rssi INTEGER NOT NULL
     )
 """)
 

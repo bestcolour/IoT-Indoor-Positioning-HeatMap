@@ -2,6 +2,7 @@ import paho.mqtt.client as mqtt
 import json
 import csv
 import time
+import sqlite3
 
 # MQTT Config
 MQTT_BROKER = "172.20.10.2"
@@ -9,6 +10,11 @@ MQTT_PORT = 1883
 MQTT_TOPIC = "ble/rssi"
 MQTT_USERNAME = "team19"
 MQTT_PASSWORD = "test123"
+
+# Database SQLite
+DATABASE = "positioning.db"
+conn = sqlite3.connect(DATABASE, check_same_thread=False)
+cursor = conn.cursor()
 
 # CSV File
 csv_filename = "ble_rssi_log.csv"
@@ -37,13 +43,21 @@ def on_message(client, userdata, msg):
         # Ensure the message contains the expected fields
         if "mac_address" in data and "device_name" in data and "rssi" in data:
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            mac = data["mac_address"]
+            device_name = data["device_name"]
+            rssi = int(data["rssi"])  # Convert RSSI to integer
 
             # Write data to CSV file
             with open(csv_filename, "a", newline="") as file:
                 writer = csv.writer(file)
-                writer.writerow([timestamp, data["mac_address"], data["device_name"], data["rssi"]])
+                writer.writerow([timestamp, mac, device_name, rssi])
 
-            print(f"Data Stored: {timestamp} | MAC: {data['mac_address']} | Device: {data['device_name']} | RSSI: {data['rssi']} dBm")
+            # Store data in SQLite database
+            cursor.execute("INSERT INTO ble_rssi (timestamp, mac, device_name, rssi) VALUES (?, ?, ?, ?)", 
+                           (timestamp, mac, device_name, rssi))
+            conn.commit()
+
+            print(f"Data Stored: {timestamp} | MAC: {mac} | Device: {device_name} | RSSI: {rssi} dBm")
         else:
             print("Warning: Unexpected MQTT message format!")
 
