@@ -8,13 +8,15 @@
 
 void setup() {
     M5.begin();
-    M5.Lcd.fillScreen(BLACK); // Clear screen
+    M5.Lcd.setRotation(1);  // Set display to landscape mode (USB on the right)
+    M5.Lcd.fillScreen(BLACK);
     M5.Lcd.setTextColor(GREEN);
     M5.Lcd.setTextSize(2);
 
     Serial.begin(115200);
     Serial.println("Starting BLE Beacon...");
 
+    // Initialize BLE
     BLEDevice::init(DEVICE_NAME);
     BLEServer *pServer = BLEDevice::createServer();
     BLEService *pService = pServer->createService(SERVICE_UUID);
@@ -29,13 +31,21 @@ void setup() {
     BLEDevice::startAdvertising();
 
     Serial.println("BLE Beacon Started!");
-    
+
+    // Get and display MAC Address
+    std::string macAddress = BLEDevice::getAddress().toString();
+    Serial.print("MAC Address: ");
+    Serial.println(macAddress.c_str());
+
     // Display status on LCD
     M5.Lcd.setCursor(10, 10);
     M5.Lcd.println("BLE Beacon Active");
 
     M5.Lcd.setCursor(10, 40);
-    M5.Lcd.println("Device: " DEVICE_NAME);
+    M5.Lcd.println("Device name: " DEVICE_NAME);
+
+    M5.Lcd.setCursor(10, 80);
+    M5.Lcd.println("MAC: " + String(macAddress.c_str())); // Display MAC
 }
 
 void loop() {
