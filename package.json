@@ -4,5 +4,9 @@
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.0.10"
+  },
+  "scripts": {
+    "watch": "npx tailwindcss -i ./flask-project/static/style.css -o ./flask-project/static/output.css --watch",
+    "start": "start /b cmd /c npm run watch && python flask-project/app.py"
   }
 }
