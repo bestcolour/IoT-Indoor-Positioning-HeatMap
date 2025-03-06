@@ -13,7 +13,7 @@ MQTT_USER = "team19"  # MQTT username
 MQTT_PASSWORD = "test123"  # MQTT password
 
 # List of Target MAC Addresses to Filter
-TARGET_MACS = ["ac:0b:fb:6f:9d:fe", "4c:75:25:cb:8e:32"]  # Add more MACs as needed
+TARGET_MACS = ["ac:0b:fb:6f:9d:fe", "4c:75:25:cb:8e:32", "4c:75:25:cb:86:8e"]  # Add more MACs as needed
 
 # Initialize MQTT Client with Authentication
 mqtt_client = mqtt.Client()
