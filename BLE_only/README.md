@@ -8,6 +8,9 @@
 mkdir IoTProject
 ```
 ```
+cd IoTProject
+```
+```
 sudo apt-get install git build-essential libglib2.0-dev 
 ```
 ```
@@ -21,6 +24,11 @@ python setup.py build
 ```
 ```
 sudo python setup.py install
+```
+
+Chained commands:
+```
+mkdir IoTProject && cd IoTProject && sudo apt-get install git build-essential libglib2.0-dev  && git clone https://github.com/IanHarvey/bluepy.git && cd bluepy && python setup.py build && sudo python setup.py install
 ```
 
 - Next, transfer the BLE_scanner.py code into the Raspberry Pi through SCP. 
