@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask + Tailwind CSS</title>
+    
+    <!-- Link to compiled Tailwind CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+    <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+        <h1 class="text-3xl font-bold text-blue-600">Welcome to My Flask App!</h1>
+        <p class="mt-4 text-gray-700">This is a Flask app styled with Tailwind CSS.</p>
+
+        <div class="mt-6">
+            <a href="#" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition">
+                Get Started
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
