@@ -33,3 +33,8 @@ Save the file by pressing Ctrl + X, then Y, then Enter
 sudo mosquitto_passwd -c /etc/mosquitto/passwd myuser (Replace myuser with your desired username)
 sudo systemctl restart mosquitto
 
+## Starting the MQTT Subscriber
+Run the following command:
+```
+python BLE_subscriber.py
+```
