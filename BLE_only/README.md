@@ -89,7 +89,7 @@ python BLE_subscriber.py
 ```
 
 
-## To run Flask:
+## To run the 2 scripts:
 need to run the below 2 commands to keep fetching the latest datas:
 ```
 python flask-project/rssi_filter.py
