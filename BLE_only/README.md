@@ -31,9 +31,9 @@ Chained commands:
 mkdir IoTProject && cd IoTProject && sudo apt-get install git build-essential libglib2.0-dev  && git clone https://github.com/IanHarvey/bluepy.git && cd bluepy && python setup.py build && sudo python setup.py install
 ```
 
-- Next, transfer the BLE_scanner.py code into the Raspberry Pi through SCP. 
+- Next, transfer the BLE_publisher.py code into the Raspberry Pi through SCP. 
 ```
-scp BLE_scanner.py <hostname>@<RaspberryPiIPAddress>:/home/<hostname>/IoTProject/bluepy/
+scp BLE_publisher.py <hostname>@<RaspberryPiIPAddress>:/home/<hostname>/IoTProject/bluepy/
 ```
 - Install the package paho-mqtt through the command 
 ```
