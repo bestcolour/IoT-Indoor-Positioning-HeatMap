@@ -5,3 +5,9 @@ Year 2 CSC2106 Internet of Things project. A study on indoor positioning system 
 ```
 npm run start
 ```
+
+
+## To run Flask:
+need to run the below 2 commands to keep fetching the latest datas:
+python flask-project/rssi_filter.py
+python flask-project/position_estimator.py
