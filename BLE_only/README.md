@@ -5,6 +5,10 @@
 - Next, ensure that you have access to a Raspberry Pi and run the following commands to install bluepy.
 
 ```
+sudo apt-get update
+```
+
+```
 mkdir IoTProject
 ```
 ```
@@ -28,12 +32,12 @@ sudo python setup.py install
 
 Chained commands:
 ```
-mkdir IoTProject && cd IoTProject && sudo apt-get install git build-essential libglib2.0-dev  && git clone https://github.com/IanHarvey/bluepy.git && cd bluepy && python setup.py build && sudo python setup.py install
+sudo apt-get update && mkdir IoTProject && cd IoTProject && sudo apt-get install git build-essential libglib2.0-dev -y && git clone https://github.com/IanHarvey/bluepy.git && cd bluepy && python setup.py build && sudo python setup.py install
 ```
 
-- Next, transfer the BLE_scanner.py code into the Raspberry Pi through SCP. 
+- Next, transfer the BLE_publisher.py code into the Raspberry Pi through SCP. 
 ```
-scp BLE_scanner.py <hostname>@<RaspberryPiIPAddress>:/home/<hostname>/IoTProject/bluepy/
+scp BLE_publisher.py <hostname>@<RaspberryPiIPAddress>:/home/<hostname>/IoTProject/bluepy/
 ```
 - Install the package paho-mqtt through the command 
 ```
@@ -41,7 +45,7 @@ sudo pip3 install --break-system-packages paho-mqtt
 ```
 - Run the following command to start the MQTT Publisher.
 ```
-sudo python BLE_scanner.py
+sudo python BLE_publisher.py
 ``` 
 
 
@@ -73,7 +77,7 @@ password_file /etc/mosquitto/passwd
 Save the file by pressing **Ctrl + X**, then **Y**, then **Enter**
 - Create a username and password for MQTT authentication (Replace myuser with your desired username)
 ```
-sudo mosquitto_passwd -c /etc/mosquitto/passwd myuser 
+sudo mosquitto_passwd -c /etc/mosquitto/passwd team19 
 ```
 ```
 sudo systemctl restart mosquitto
@@ -85,7 +89,7 @@ python BLE_subscriber.py
 ```
 
 
-## To run Flask:
+## To run the 2 scripts:
 need to run the below 2 commands to keep fetching the latest datas:
 ```
 python flask-project/rssi_filter.py

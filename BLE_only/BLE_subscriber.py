@@ -5,7 +5,7 @@ import time
 import sqlite3
 
 # MQTT Config
-MQTT_BROKER = "172.20.10.2"
+MQTT_BROKER = "192.168.93.138"
 MQTT_PORT = 1883
 MQTT_TOPIC = "ble/rssi"
 MQTT_USERNAME = "team19"
@@ -23,7 +23,7 @@ csv_filename = "ble_rssi_log.csv"
 try:
     with open(csv_filename, "x", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["Timestamp", "MAC Address", "Device Name", "RSSI (dBm)"])
+        writer.writerow(["Timestamp", "AP Identifier", "MAC Address", "Device Name", "RSSI (dBm)"])
 except FileExistsError:
     pass  # If file already exists, do nothing
 
@@ -43,6 +43,7 @@ def on_message(client, userdata, msg):
         # Ensure the message contains the expected fields
         if "mac_address" in data and "device_name" in data and "rssi" in data:
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            ap_id = data.get("ap_id", "Unknown")  # Default to "Unknown" if missing
             mac = data["mac_address"]
             device_name = data["device_name"]
             rssi = int(data["rssi"])  # Convert RSSI to integer
@@ -50,14 +51,14 @@ def on_message(client, userdata, msg):
             # Write data to CSV file
             with open(csv_filename, "a", newline="") as file:
                 writer = csv.writer(file)
-                writer.writerow([timestamp, mac, device_name, rssi])
+                writer.writerow([timestamp, ap_id, mac, device_name, rssi])
 
             # Store data in SQLite database
-            cursor.execute("INSERT INTO ble_rssi (timestamp, mac, device_name, rssi) VALUES (?, ?, ?, ?)", 
-                           (timestamp, mac, device_name, rssi))
+            cursor.execute("INSERT INTO ble_rssi (timestamp, ap_id, mac, device_name, rssi) VALUES (?, ?, ?, ?, ?)", 
+                           (timestamp, ap_id, mac, device_name, rssi))
             conn.commit()
 
-            print(f"Data Stored: {timestamp} | MAC: {mac} | Device: {device_name} | RSSI: {rssi} dBm")
+            print(f"Data Stored: {timestamp} | AP: {ap_id} | MAC: {mac} | Device: {device_name} | RSSI: {rssi} dBm")
         else:
             print("Warning: Unexpected MQTT message format!")
 
