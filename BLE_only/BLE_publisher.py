@@ -4,9 +4,10 @@ import paho.mqtt.client as mqtt
 import json
 import time
 from bluepy.btle import Scanner
+import socket
 
 # MQTT Broker Configuration
-MQTT_BROKER = "192.168.16.18"
+MQTT_BROKER = "192.168.93.138"
 MQTT_PORT = 1883
 MQTT_TOPIC = "ble/rssi"
 MQTT_USER = "team19"  # MQTT username
@@ -14,6 +15,9 @@ MQTT_PASSWORD = "test123"  # MQTT password
 
 # List of Target MAC Addresses to Filter
 TARGET_MACS = ["ac:0b:fb:6f:9d:fe", "4c:75:25:cb:8e:32", "4c:75:25:cb:86:8e"]  # Add more MACs as needed
+
+# Get Raspberry Pi's Hostname or IP as AP Identifier
+AP_IDENTIFIER = socket.gethostname()
 
 # Initialize MQTT Client with Authentication
 mqtt_client = mqtt.Client()
@@ -38,6 +42,7 @@ while True:
             # Prepare MQTT payload
             payload = {
                 "timestamp": timestamp,
+                "ap_id": AP_IDENTIFIER,
                 "mac_address": dev.addr,
                 "device_name": device_name,
                 "rssi": dev.rssi

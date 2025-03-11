@@ -41,7 +41,7 @@ sudo pip3 install --break-system-packages paho-mqtt
 ```
 - Run the following command to start the MQTT Publisher.
 ```
-sudo python BLE_scanner.py
+sudo python BLE_publisher.py
 ``` 
 
 
@@ -73,7 +73,7 @@ password_file /etc/mosquitto/passwd
 Save the file by pressing **Ctrl + X**, then **Y**, then **Enter**
 - Create a username and password for MQTT authentication (Replace myuser with your desired username)
 ```
-sudo mosquitto_passwd -c /etc/mosquitto/passwd myuser 
+sudo mosquitto_passwd -c /etc/mosquitto/passwd team19 
 ```
 ```
 sudo systemctl restart mosquitto
