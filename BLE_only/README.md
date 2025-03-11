@@ -5,6 +5,10 @@
 - Next, ensure that you have access to a Raspberry Pi and run the following commands to install bluepy.
 
 ```
+sudo apt-get update
+```
+
+```
 mkdir IoTProject
 ```
 ```
@@ -28,7 +32,7 @@ sudo python setup.py install
 
 Chained commands:
 ```
-mkdir IoTProject && cd IoTProject && sudo apt-get install git build-essential libglib2.0-dev  && git clone https://github.com/IanHarvey/bluepy.git && cd bluepy && python setup.py build && sudo python setup.py install
+sudo apt-get update && mkdir IoTProject && cd IoTProject && sudo apt-get install git build-essential libglib2.0-dev -y && git clone https://github.com/IanHarvey/bluepy.git && cd bluepy && python setup.py build && sudo python setup.py install
 ```
 
 - Next, transfer the BLE_publisher.py code into the Raspberry Pi through SCP. 
