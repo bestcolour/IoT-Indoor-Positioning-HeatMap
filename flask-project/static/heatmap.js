@@ -1,29 +1,38 @@
 document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("heatmapContainer");
 
-    // Get container width and height dynamically
+    // Get actual width & height dynamically
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // Create the heatmap instance
+    // Define padding/margins for better positioning
+    const padding = 60; // Keep some space inside the graph
+
+    // Create Heatmap instance
     var heatmap = h337.create({
         container: container,
-        radius: 100,  // Adjust size for visibility
+        radius: 35, // Reduce radius to prevent overlap
         maxOpacity: 0.6,
         minOpacity: 0.1,
         blur: 0.75
     });
 
-    // Fetch heatmap data from API
+    // Fetch heatmap data
     fetch('/api/heatmap')
         .then(response => response.json())
         .then(data => {
             console.log("Raw Heatmap Data:", data);
 
-            // Scaling X and Y values to match container size
+            // Force minX to start at 90
+            let minX = 90;
+            let maxX = Math.max(...data.map(d => d.x));  // Keep max X dynamic
+            let minY = Math.min(...data.map(d => d.y));
+            let maxY = Math.max(...data.map(d => d.y));
+
+            // Scale X and Y values to fit within container bounds
             let scaledData = data.map(d => ({
-                x: Math.floor((d.x / 6) * width),  // Scale x to fit full container
-                y: Math.floor(height - (d.y / 6) * height),  // Invert Y-axis
+                x: Math.floor(((d.x - minX) / (maxX - minX)) * (width - padding * 2) + padding),  // Scale x starting from 90
+                y: Math.floor(height - (((d.y - minY) / (maxY - minY)) * (height - padding * 2) + padding)), // Scale & flip y
                 value: 1
             }));
 
@@ -33,10 +42,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 max: 10,
                 data: scaledData
             });
+
+            // Draw X and Y axes
+            drawAxes(container, width, height, minX, maxX, minY, maxY, padding);
         })
         .catch(error => console.error("Error loading heatmap data:", error));
+});
 
-    // Create Canvas for X and Y Axes
+// Function to draw X and Y axes with labels
+function drawAxes(container, width, height, minX, maxX, minY, maxY, padding) {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
@@ -49,35 +63,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Draw X-Axis (Bottom)
     ctx.beginPath();
-    ctx.moveTo(50, height - 50);
-    ctx.lineTo(width - 20, height - 50);
+    ctx.moveTo(padding, height - padding);
+    ctx.lineTo(width - padding, height - padding);
     ctx.strokeStyle = "black";
     ctx.lineWidth = 3;
     ctx.stroke();
 
     // Draw Y-Axis (Left)
     ctx.beginPath();
-    ctx.moveTo(50, height - 50);
-    ctx.lineTo(50, 20);
+    ctx.moveTo(padding, height - padding);
+    ctx.lineTo(padding, padding);
     ctx.strokeStyle = "black";
     ctx.lineWidth = 3;
     ctx.stroke();
 
     // Label axes
-    ctx.font = "20px Arial";
-    ctx.fillText("X", width - 30, height - 20);
-    ctx.fillText("Y", 10, 30);
+    ctx.font = "16px Arial";
+    ctx.fillText("X", width - padding + 20, height - padding);
+    ctx.fillText("Y", padding - 30, padding - 10);
 
-    // Add numeric labels for X-Axis
-    for (let i = 0; i <= 6; i++) {
-        let posX = 50 + i * ((width - 100) / 6);  // Spacing for full width
-        ctx.fillText(i, posX, height - 30);
+    // Add numeric labels for X-Axis starting from 90
+    for (let i = 0; i <= 5; i++) {
+        let posX = padding + i * ((width - padding * 2) / 5);
+        let labelX = Math.round(minX + (i / 5) * (maxX - minX)); // Starts at 90
+        ctx.fillText(labelX, posX, height - padding + 20);
     }
 
     // Add numeric labels for Y-Axis
-    for (let i = 0; i <= 6; i++) {
-        let posY = height - 50 - i * ((height - 100) / 6);  // Spacing for full height
-        ctx.fillText(i, 30, posY);
+    for (let i = 0; i <= 5; i++) {
+        let posY = height - padding - i * ((height - padding * 2) / 5);
+        let labelY = Math.round(minY + (i / 5) * (maxY - minY));
+        ctx.fillText(labelY, padding - 40, posY);
     }
-});
-
+}
