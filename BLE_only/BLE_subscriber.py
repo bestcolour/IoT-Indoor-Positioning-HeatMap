@@ -1,6 +1,5 @@
 import paho.mqtt.client as mqtt
 import json
-import csv
 import time
 import sqlite3
 
@@ -15,17 +14,6 @@ MQTT_PASSWORD = "test123"
 DATABASE = "positioning.db"
 conn = sqlite3.connect(DATABASE, check_same_thread=False)
 cursor = conn.cursor()
-
-# CSV File
-csv_filename = "ble_rssi_log.csv"
-
-# Open CSV file and write headers (only if file is empty)
-try:
-    with open(csv_filename, "x", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["Timestamp", "AP Identifier", "MAC Address", "Device Name", "RSSI (dBm)"])
-except FileExistsError:
-    pass  # If file already exists, do nothing
 
 # MQTT Callbacks
 def on_connect(client, userdata, flags, rc):
@@ -47,11 +35,6 @@ def on_message(client, userdata, msg):
             mac = data["mac_address"]
             device_name = data["device_name"]
             rssi = int(data["rssi"])  # Convert RSSI to integer
-
-            # Write data to CSV file
-            with open(csv_filename, "a", newline="") as file:
-                writer = csv.writer(file)
-                writer.writerow([timestamp, ap_id, mac, device_name, rssi])
 
             # Store data in SQLite database
             cursor.execute("INSERT INTO ble_rssi (timestamp, ap_id, mac, device_name, rssi) VALUES (?, ?, ?, ?, ?)", 
