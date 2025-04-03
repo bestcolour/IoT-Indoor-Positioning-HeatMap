@@ -7,14 +7,14 @@ from bluepy.btle import Scanner
 import socket
 
 # MQTT Broker Configuration
-MQTT_BROKER = "192.168.93.138"
+MQTT_BROKER = "192.168.33.18"
 MQTT_PORT = 1883
 MQTT_TOPIC = "ble/rssi"
 MQTT_USER = "team19"  # MQTT username
 MQTT_PASSWORD = "test123"  # MQTT password
 
 # List of Target MAC Addresses to Filter
-TARGET_MACS = ["ac:0b:fb:6f:9d:fe", "4c:75:25:cb:8e:32", "4c:75:25:cb:86:8e"]  # Add more MACs as needed
+TARGET_MACS = ["ac:0b:fb:6f:9d:fe", "4c:75:25:cb:8e:32", "4c:75:25:cb:86:8e", "4c:75:25:cb:8e:36", "4c:75:25:cb:83:26"]  # Add more MACs as needed
 
 # Get Raspberry Pi's Hostname or IP as AP Identifier
 AP_IDENTIFIER = socket.gethostname()
