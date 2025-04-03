@@ -15,6 +15,17 @@ DATABASE = "positioning.db"
 conn = sqlite3.connect(DATABASE, check_same_thread=False)
 cursor = conn.cursor()
 
+# Cleanup: Remove all rows from relevant tables on start
+try:
+    tables_to_clear = ["ble_rssi", "estimated_positions", "filtered_rssi"]
+    for table in tables_to_clear:
+        cursor.execute(f"DELETE FROM {table}")
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name=?", (table,))
+    conn.commit()
+    print("Cleared ble_rssi, estimated_positions, and filtered_rssi tables.")
+except Exception as e:
+    print(f"Failed to clear tables: {e}")
+
 # MQTT Callbacks
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -28,19 +39,18 @@ def on_message(client, userdata, msg):
         data = json.loads(msg.payload.decode())  # Convert JSON to dictionary
         print("Received MQTT Data:", data)  # Debugging line
 
-        # Ensure the message contains the expected fields
         if "mac_address" in data and "device_name" in data and "rssi" in data:
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            ap_id = data.get("ap_id", "Unknown")  # Default to "Unknown" if missing
+            ap_id = data.get("ap_id", "Unknown")
             mac = data["mac_address"]
             device_name = data["device_name"]
-            rssi = int(data["rssi"])  # Convert RSSI to integer
+            rssi = int(data["rssi"])
 
-            # Store data in SQLite database
-            cursor.execute("INSERT INTO ble_rssi (timestamp, ap_id, mac, device_name, rssi) VALUES (?, ?, ?, ?, ?)", 
-                           (timestamp, ap_id, mac, device_name, rssi))
+            cursor.execute(
+                "INSERT INTO ble_rssi (timestamp, ap_id, mac, device_name, rssi) VALUES (?, ?, ?, ?, ?)",
+                (timestamp, ap_id, mac, device_name, rssi)
+            )
             conn.commit()
-
             print(f"Data Stored: {timestamp} | AP: {ap_id} | MAC: {mac} | Device: {device_name} | RSSI: {rssi} dBm")
         else:
             print("Warning: Unexpected MQTT message format!")
@@ -50,7 +60,7 @@ def on_message(client, userdata, msg):
 
 # Start MQTT Client
 client = mqtt.Client()
-client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD) 
+client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect(MQTT_BROKER, MQTT_PORT, 60)
