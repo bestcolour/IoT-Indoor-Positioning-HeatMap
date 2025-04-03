@@ -125,7 +125,6 @@ def fetch_raw_rssi():
         LEFT JOIN filtered_rssi f ON r.timestamp = f.timestamp AND r.ap_id = f.ap_id AND r.mac = f.mac
         WHERE f.id IS NULL
         ORDER BY r.timestamp DESC
-        LIMIT 100
     """)
     
     data = cursor.fetchall()
@@ -167,15 +166,9 @@ def process_rssi():
     rows_stored = batch_store_filtered_rssi(filtered_data)
     return rows_stored
 
-# Moving Average Filter (alternative to Kalman)
-def moving_average_filter(mac, rssi, window_size=5):
-    """Apply moving average filter to RSSI values"""
-    if mac not in moving_avg_buffer:
-        moving_avg_buffer[mac] = []
-    
-    buffer = moving_avg_buffer[mac]
-    buffer.append(rssi)
-    
-    # Keep only the latest window_size values
-    if len(buffer) > window_size:
-        buffer.pop(0)
+if __name__ == "__main__":
+    create_tables()                   # Create the tables if they don't exist
+    rows_stored = process_rssi()     # Fetch & filter new RSSI data
+    print(f"Rows stored: {rows_stored}")
+
+
