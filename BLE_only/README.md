@@ -43,6 +43,20 @@ scp BLE_publisher.py <hostname>@<RaspberryPiIPAddress>:/home/<hostname>/IoTProje
 ```
 sudo pip3 install --break-system-packages paho-mqtt
 ```
+- Enable NTP on each Raspberry Pi
+```
+sudo timedatectl set-ntp true
+```
+```
+sudo apt install ntpdate
+```
+```
+sudo ntpdate time.google.com
+```
+```
+sudo timedatectl set-timezone Asia/Singapore
+
+```
 - Run the following command to start the MQTT Publisher.
 ```
 sudo python BLE_publisher.py

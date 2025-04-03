@@ -11,9 +11,9 @@ DATABASE = os.path.join(BASE_DIR, "../BLE_only/positioning.db")
 
 # AP Coordinates
 AP_COORDINATES = {
-    "AP_0": (0, 0),
-    "AP_1": (342, 0),
-    "AP_2": (0, 384)
+    "pierre": (0, 0),
+    "keshleepi": (342, 0),
+    "enthong": (0, 384)
 }
 
 # Ensure database tables exist
