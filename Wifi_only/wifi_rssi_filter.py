@@ -40,6 +40,7 @@ def create_tables():
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             ap_id TEXT,
             mac TEXT,
+            device_name TEXT,
             rssi REAL
         )
     """)
@@ -51,6 +52,7 @@ def create_tables():
             timestamp DATETIME,
             ap_id TEXT,
             mac TEXT,
+            device_name TEXT,
             filtered_rssi REAL,
             UNIQUE(timestamp, ap_id, mac)
         )
@@ -120,9 +122,13 @@ def fetch_raw_rssi():
     
     # Get only entries we haven't processed yet
     cursor.execute("""
-        SELECT r.id, r.timestamp, r.ap_id, r.mac, r.rssi 
+        SELECT r.id, r.timestamp, r.ap_id, r.mac, r.device_name, r.rssi 
         FROM wifi_rssi r
-        LEFT JOIN wifi_filtered_rssi f ON r.timestamp = f.timestamp AND r.ap_id = f.ap_id AND r.mac = f.mac
+        LEFT JOIN wifi_filtered_rssi f 
+            ON r.timestamp = f.timestamp 
+            AND r.ap_id = f.ap_id 
+            AND r.mac = f.mac 
+            AND r.device_name = f.device_name
         WHERE f.id IS NULL
         ORDER BY r.timestamp DESC
     """)
@@ -140,8 +146,8 @@ def batch_store_filtered_rssi(filtered_data):
     
     # Use executemany for batch inserts
     conn.executemany("""
-        INSERT OR IGNORE INTO wifi_filtered_rssi (timestamp, ap_id, mac, filtered_rssi)
-        VALUES (?, ?, ?, ?)
+        INSERT OR IGNORE INTO wifi_filtered_rssi (timestamp, ap_id, mac, device_name, filtered_rssi)
+        VALUES (?, ?, ?, ?, ?)
     """, filtered_data)
     
     rows_affected = conn.total_changes
@@ -159,9 +165,9 @@ def process_rssi():
     
     filtered_data = []
     for entry in raw_data:
-        rssi_id, timestamp, ap_id, mac, rssi = entry
+        rssi_id, timestamp, ap_id, mac, device_name, rssi = entry
         filtered_rssi = kalman_filter_rssi(mac, rssi)
-        filtered_data.append((timestamp, ap_id, mac, filtered_rssi))
+        filtered_data.append((timestamp, ap_id, mac, device_name, filtered_rssi))
     
     rows_stored = batch_store_filtered_rssi(filtered_data)
     return rows_stored
