@@ -1,31 +1,28 @@
 import paho.mqtt.client as mqtt
 import json
 import time
-# import sqlite3
-from .BLE_database_helper import clear_table,insert_table,assert_setup_tables
+import sqlite3
 
 # MQTT Config
-MQTT_BROKER = "192.168.33.148"
+MQTT_BROKER = "192.168.33.18"
 MQTT_PORT = 1883
 MQTT_TOPIC = "ble/rssi"
 MQTT_USERNAME = "team19"
 MQTT_PASSWORD = "test123"
 
 # Database SQLite
-# DATABASE = "positioning.db"
-# conn = sqlite3.connect(DATABASE, check_same_thread=False)
-assert_setup_tables()
+DATABASE = "positioning.db"
+conn = sqlite3.connect(DATABASE, check_same_thread=False)
+cursor = conn.cursor()
 
 # Cleanup: Remove all rows from relevant tables on start
 try:
-    tables_to_clear = ["ble_rssi", "ble_estimated_positions", "ble_filtered_rssi"]
-    if(clear_table(table_names=tables_to_clear)):
-        print(f"Cleared {tables_to_clear}.")
-        
-    # for table in tables_to_clear:
-    #     cursor.execute(text(f"DELETE FROM {table}"))
-    #     cursor.execute("DELETE FROM sqlite_sequence WHERE name=?", (table,))
-    # conn.commit()
+    tables_to_clear = ["ble_rssi", "estimated_positions", "filtered_rssi"]
+    for table in tables_to_clear:
+        cursor.execute(f"DELETE FROM {table}")
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name=?", (table,))
+    conn.commit()
+    print("Cleared ble_rssi, estimated_positions, and filtered_rssi tables.")
 except Exception as e:
     print(f"Failed to clear tables: {e}")
 
@@ -49,7 +46,11 @@ def on_message(client, userdata, msg):
             device_name = data["device_name"]
             rssi = int(data["rssi"])
 
-            insert_table(timestamp=timestamp,ap_id=ap_id,mac=mac,device_name=device_name,rssi=rssi)
+            cursor.execute(
+                "INSERT INTO ble_rssi (timestamp, ap_id, mac, device_name, rssi) VALUES (?, ?, ?, ?, ?)",
+                (timestamp, ap_id, mac, device_name, rssi)
+            )
+            conn.commit()
             print(f"Data Stored: {timestamp} | AP: {ap_id} | MAC: {mac} | Device: {device_name} | RSSI: {rssi} dBm")
         else:
             print("Warning: Unexpected MQTT message format!")

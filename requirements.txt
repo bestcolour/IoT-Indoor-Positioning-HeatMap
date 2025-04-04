@@ -58,7 +58,6 @@ opencv-python-headless==4.10.0.84
 opt_einsum==3.4.0
 optree==0.13.0
 packaging==24.0
-paho-mqtt==2.1.0
 pandas==2.2.1
 parso==0.8.4
 piexif==1.1.3
