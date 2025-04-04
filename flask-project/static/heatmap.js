@@ -6,34 +6,80 @@ document.addEventListener("DOMContentLoaded", function () {
     const height = container.clientHeight;
 
     // Define padding/margins for better positioning
-    const padding = 60; // Keep some space inside the graph
+    const padding = 60; // Leave some space for axes and labels
 
-    // Create Heatmap instance
+    // Default physical coordinate ranges (larger than before)
+    const DEFAULT_MIN_X = 0;
+    const DEFAULT_MAX_X = 4.3;      // doubled from 2.15
+    const DEFAULT_MIN_Y = 0;
+    const DEFAULT_MAX_Y = 11.68;    // doubled from 5.84
+
+    // Optional scale factor to further enlarge the dynamic range (set to 1 for no extra scaling)
+    const scaleFactor = 1; // Increase above 1 (e.g., 1.5 or 2) to further enlarge the spread
+
+    // Create Heatmap instance with a larger radius if needed
     var heatmap = h337.create({
         container: container,
-        radius: 35, // Reduce radius to prevent overlap
+        radius: 50, // Increased radius
         maxOpacity: 0.6,
         minOpacity: 0.1,
         blur: 0.75
     });
 
-    // Fetch heatmap data
+    // Fetch heatmap data from your API endpoint
     fetch('/api/heatmap')
         .then(response => response.json())
         .then(data => {
             console.log("Raw Heatmap Data:", data);
+            // Fallback sample data for four points if no data returned.
+            if (!data || data.length === 0) {
+                console.log("No data returned, using fallback sample data.");
+                data = [
+                    { x: 0.1, y: 5.7, value: 1 },
+                    { x: 2.0, y: 5.7, value: 1 },
+                    { x: 0.1, y: 0.3, value: 1 },
+                    { x: 2.0, y: 0.3, value: 1 }
+                ];
+            }
 
-            // Force minX to start at 90
-            let minX = 90;
-            let maxX = Math.max(...data.map(d => d.x));  // Keep max X dynamic
-            let minY = Math.min(...data.map(d => d.y));
-            let maxY = Math.max(...data.map(d => d.y));
+            // Compute dynamic physical ranges from data
+            let dynamicMinX = Math.min(...data.map(d => d.x));
+            let dynamicMaxX = Math.max(...data.map(d => d.x));
+            let dynamicMinY = Math.min(...data.map(d => d.y));
+            let dynamicMaxY = Math.max(...data.map(d => d.y));
 
-            // Scale X and Y values to fit within container bounds
+            // If the data's range is smaller than our desired default range, use the default range.
+            if ((dynamicMaxX - dynamicMinX) < (DEFAULT_MAX_X - DEFAULT_MIN_X)) {
+                dynamicMinX = DEFAULT_MIN_X;
+                dynamicMaxX = DEFAULT_MAX_X;
+            }
+            if ((dynamicMaxY - dynamicMinY) < (DEFAULT_MAX_Y - DEFAULT_MIN_Y)) {
+                dynamicMinY = DEFAULT_MIN_Y;
+                dynamicMaxY = DEFAULT_MAX_Y;
+            }
+
+            // Optionally, enlarge the dynamic range further using a scale factor.
+            // This will expand the range while keeping the center the same.
+            if (scaleFactor > 1) {
+                let centerX = (dynamicMinX + dynamicMaxX) / 2;
+                let rangeX = (dynamicMaxX - dynamicMinX) * scaleFactor;
+                dynamicMinX = centerX - rangeX / 2;
+                dynamicMaxX = centerX + rangeX / 2;
+
+                let centerY = (dynamicMinY + dynamicMaxY) / 2;
+                let rangeY = (dynamicMaxY - dynamicMinY) * scaleFactor;
+                dynamicMinY = centerY - rangeY / 2;
+                dynamicMaxY = centerY + rangeY / 2;
+            }
+
+            console.log("Using Ranges:", dynamicMinX, dynamicMaxX, dynamicMinY, dynamicMaxY);
+
+            // Scale the physical coordinates into canvas coordinates
             let scaledData = data.map(d => ({
-                x: Math.floor(((d.x - minX) / (maxX - minX)) * (width - padding * 2) + padding),  // Scale x starting from 90
-                y: Math.floor(height - (((d.y - minY) / (maxY - minY)) * (height - padding * 2) + padding)), // Scale & flip y
-                value: 1
+                x: Math.floor(padding + ((d.x - dynamicMinX) / (dynamicMaxX - dynamicMinX)) * (width - padding * 2)),
+                // Flip the y-axis so that physical y=0 is at the bottom
+                y: Math.floor(height - padding - ((d.y - dynamicMinY) / (dynamicMaxY - dynamicMinY)) * (height - padding * 2)),
+                value: d.value || 1
             }));
 
             console.log("Scaled Heatmap Data:", scaledData);
@@ -43,13 +89,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 data: scaledData
             });
 
-            // Draw X and Y axes
-            drawAxes(container, width, height, minX, maxX, minY, maxY, padding);
+            // Draw axes using the dynamic (or default) physical coordinate ranges
+            drawAxes(container, width, height, dynamicMinX, dynamicMaxX, dynamicMinY, dynamicMaxY, padding);
         })
         .catch(error => console.error("Error loading heatmap data:", error));
 });
 
-// Function to draw X and Y axes with labels
+// Function to draw X and Y axes with numeric labels
 function drawAxes(container, width, height, minX, maxX, minY, maxY, padding) {
     const canvas = document.createElement("canvas");
     canvas.width = width;
@@ -61,7 +107,7 @@ function drawAxes(container, width, height, minX, maxX, minY, maxY, padding) {
 
     const ctx = canvas.getContext("2d");
 
-    // Draw X-Axis (Bottom)
+    // Draw X-Axis (at the bottom)
     ctx.beginPath();
     ctx.moveTo(padding, height - padding);
     ctx.lineTo(width - padding, height - padding);
@@ -69,7 +115,7 @@ function drawAxes(container, width, height, minX, maxX, minY, maxY, padding) {
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Draw Y-Axis (Left)
+    // Draw Y-Axis (on the left)
     ctx.beginPath();
     ctx.moveTo(padding, height - padding);
     ctx.lineTo(padding, padding);
@@ -77,22 +123,25 @@ function drawAxes(container, width, height, minX, maxX, minY, maxY, padding) {
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Label axes
-    ctx.font = "16px Arial";
-    ctx.fillText("X", width - padding + 20, height - padding);
-    ctx.fillText("Y", padding - 30, padding - 10);
+    // Use a larger font for labels
+    ctx.font = "20px Arial";
+    ctx.fillText("X (m)", width - padding + 20, height - padding);
+    ctx.fillText("Y (m)", padding - 40, padding - 10);
 
-    // Add numeric labels for X-Axis starting from 90
-    for (let i = 0; i <= 5; i++) {
-        let posX = padding + i * ((width - padding * 2) / 5);
-        let labelX = Math.round(minX + (i / 5) * (maxX - minX)); // Starts at 90
-        ctx.fillText(labelX, posX, height - padding + 20);
+    // Define the number of divisions (tick marks)
+    const divisions = 5;
+
+    // X-Axis numeric labels
+    for (let i = 0; i <= divisions; i++) {
+        let posX = padding + i * ((width - padding * 2) / divisions);
+        let labelX = (minX + (i / divisions) * (maxX - minX)).toFixed(2);
+        ctx.fillText(labelX, posX - 10, height - padding + 30);
     }
 
-    // Add numeric labels for Y-Axis
-    for (let i = 0; i <= 5; i++) {
-        let posY = height - padding - i * ((height - padding * 2) / 5);
-        let labelY = Math.round(minY + (i / 5) * (maxY - minY));
-        ctx.fillText(labelY, padding - 40, posY);
+    // Y-Axis numeric labels
+    for (let i = 0; i <= divisions; i++) {
+        let posY = height - padding - i * ((height - padding * 2) / divisions);
+        let labelY = (minY + (i / divisions) * (maxY - minY)).toFixed(2);
+        ctx.fillText(labelY, padding - 50, posY + 5);
     }
 }

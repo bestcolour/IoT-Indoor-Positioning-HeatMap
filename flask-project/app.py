@@ -14,11 +14,13 @@ def index():
 
 @app.route("/api/heatmap")
 def get_heatmap_data():
-    """Fetch (X, Y) position data from estimated_positions"""
+    # """Fetch (X, Y) position data from estimated_positions"""
+    """Fetch (X, Y) position data from wifi_estimated_positions"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    cursor.execute("SELECT x, y FROM estimated_positions")  # Fetch (X, Y) positions
+    # cursor.execute("SELECT x, y FROM estimated_positions")  # Fetch (X, Y) positions
+    cursor.execute("SELECT x, y FROM wifi_estimated_positions")  # Fetch (X, Y) positions
     data = cursor.fetchall()
     conn.close()
 
