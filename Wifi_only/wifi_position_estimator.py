@@ -43,7 +43,7 @@ def fetch_grouped_rssi():
 
     # Pull data from your wifi_filtered_rssi table:
     cursor.execute("""
-        SELECT device_name, ap_id, timestamp, filtered_rssi
+        SELECT device_name, mac, ap_id, timestamp, filtered_rssi
         FROM wifi_filtered_rssi
         ORDER BY timestamp ASC
     """)
@@ -52,7 +52,7 @@ def fetch_grouped_rssi():
 
     # Group by device_name => { "M5StickCPlus-KeeShen": [(datetime, ap_id, rssi), ...], ... }
     grouped = {}
-    for device_name, ap_id, ts, rssi in raw_data:
+    for device_name, mac, ap_id, ts, rssi in raw_data:
         # If timestamps are "YYYY-MM-DD HH:MM:SS":
         ts_dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
         grouped.setdefault(device_name, []).append((ts_dt, ap_id, rssi))
@@ -173,11 +173,11 @@ def store_positions(positions):
 
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    for (mac, device_name, ts_str), (x, y) in positions.items():
+    for (device_name, mac, ts_str), (x, y) in positions.items():
         cursor.execute("""
-            INSERT OR IGNORE INTO wifi_estimated_positions (mac, device_name, x, y, timestamp)
+            INSERT OR IGNORE INTO wifi_estimated_positions (mac, x, y, timestamp, device_name)
             VALUES (?, ?, ?, ?, ?)
-        """, (mac, device_name, x, y, ts_str))
+        """, (mac, x, y, ts_str, device_name))
         print(f"→ Stored: {device_name} ({mac}) @ {ts_str} => X={x:.2f}, Y={y:.2f}")
 
     conn.commit()
