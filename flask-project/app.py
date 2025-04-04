@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # Correct database path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "../BLE_only/positioning.db")
+DB_PATH = os.path.join(BASE_DIR, "../Wifi_only/positioning.db")
 
 @app.route("/")
 def index():
