@@ -13,11 +13,10 @@ sudo apt update && sudo apt upgrade -y
 sudo nano /etc/NetworkManager/NetworkManager.conf
 ```
 
-Add this line
+Add this line in the [main] section 
 ```
 dns=dnsmasq
 ```
-in the [main] section 
 
 ```
 sudo systemctl restart NetworkManager
@@ -54,4 +53,43 @@ sudo nmcli connection modify PiAP wifi-sec.key-mgmt wpa-psk wifi-sec.psk "strong
 ### Step 7: Bring the AP online
 ```
 sudo nmcli connection up PiAP
+```
+
+### Optional: Create ap_mode.sh and hotspot_mode.sh to switch between AP mode and hotspot mode easily
+```
+sudo nano ./ap_mode.sh
+```
+Paste this inside
+```
+#!/bin/bash
+
+echo "Switching to AP Mode..."
+
+# Optional: Disconnect from hotspot if connected
+# sudo nmcli connection down "kys_dont_kys" 2>/dev/null
+
+# Bring up the PiAP Access Point
+sudo nmcli connection up PiAP
+
+echo "Access Point 'RPi_AP_name' is now active with IP 192.168.4.x"
+```
+```
+sudo chmod +x ap_mode.sh
+```
+### Hotspot_mode.sh
+```
+sudo nano ./hotspot_mode.sh
+```
+Paste this inside
+```
+#!/bin/bash
+
+echo "Switching to Hotspot (Client) Mode..."
+
+# Connect directly — NM will disable AP for you
+sudo nmcli device wifi connect "kys_dont_kys" password "killmepls"
+sudo nmcli connection modify "kys_dont_kys" connection.autoconnect yes
+```
+```
+sudo chmod +x hotspot_mode.sh
 ```

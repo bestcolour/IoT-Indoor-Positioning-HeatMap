@@ -89,7 +89,7 @@ allow_anonymous false
 password_file /etc/mosquitto/passwd
 ```
 Save the file by pressing **Ctrl + X**, then **Y**, then **Enter**
-- Create a username and password for MQTT authentication (Replace myuser with your desired username)
+- Create a username and password for MQTT authentication (Replace team19 with your desired username)
 ```
 sudo mosquitto_passwd -c /etc/mosquitto/passwd team19 
 ```
