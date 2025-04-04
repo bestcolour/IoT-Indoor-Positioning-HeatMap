@@ -16,14 +16,12 @@ const char* mqtt_password = "test123";
 const char* mqtt_topic    = "wifi/rssi";
 
 // === AP Scanner identity ===
-const char* DEVICE_NAME = "M5StickCPlus-Pierre";
+const char* DEVICE_NAME = "M5StickCPlus-XinYi";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-bool scanInProgress = false;
-unsigned long lastScanStart = 0;
-const unsigned long scanInterval = 2000;  // scan every 2 seconds
+const unsigned long publishInterval = 6000;  // 6 seconds
 
 // === Connect to Wi-Fi ===
 void connectToWiFi() {
@@ -36,7 +34,7 @@ void connectToWiFi() {
   M5.Lcd.println("\nWiFi Connected!");
   M5.Lcd.println(WiFi.localIP());
 
-  configTime(0, 0, "time.google.com"); // Set up NTP
+  configTime(0, 0, "time.google.com");  // Set up NTP
   M5.Lcd.println("Syncing time...");
   time_t now = time(nullptr);
   while (now < 100000) {
@@ -86,57 +84,65 @@ void setup() {
 }
 
 void loop() {
-  if (!client.connected()) {
-    connectToMQTT();
-  }
-  client.loop();
+  unsigned long startCycle = millis();
 
-  unsigned long now = millis();
+  // Show "Scanning" status
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setTextColor(GREEN);
+  M5.Lcd.setTextSize(3);
+  M5.Lcd.setCursor(20, 20);
+  M5.Lcd.println("Scanning");
 
-  // Start scan every interval
-  if (!scanInProgress && now - lastScanStart >= scanInterval) {
-    WiFi.scanDelete();               // Clear previous results
-    WiFi.scanNetworks(true);        // Start async scan
-    scanInProgress = true;
-    lastScanStart = now;
-    M5.Lcd.fillScreen(BLACK);
-    M5.Lcd.setCursor(0, 0);
-    M5.Lcd.println("Scanning...");
-  }
+  M5.Lcd.setTextSize(1);
+  M5.Lcd.setCursor(20, 60);
+  M5.Lcd.setTextColor(WHITE);
+  M5.Lcd.println(DEVICE_NAME);
 
-  int n = WiFi.scanComplete();
-  if (scanInProgress && n >= 0) {
-    M5.Lcd.fillScreen(BLACK);
-    M5.Lcd.setCursor(0, 0);
-    M5.Lcd.printf("Found %d networks\n", n);
+  // Start synchronous scan
+  int n = WiFi.scanNetworks();  // blocking
 
-    for (int i = 0; i < n; ++i) {
-      String ssidName = WiFi.SSID(i);
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(0, 0);
+  M5.Lcd.printf("Found %d networks\n", n);
 
-      if (ssidName == "RPi_AP_Pierre" || ssidName == "RPi_AP_Alicia" ||
-          ssidName == "RPi_AP_KeeShen" || ssidName == "RPi_AP_EnThong") {
+  for (int i = 0; i < n; ++i) {
+    String ssidName = WiFi.SSID(i);
 
-        String bssid = WiFi.BSSIDstr(i);
-        int rssi = WiFi.RSSI(i);
+    if (ssidName == "RPi_AP_Pierre" || ssidName == "RPi_AP_Alicia" ||
+        ssidName == "RPi_AP_KeeShen" || ssidName == "RPi_AP_EnThong") {
 
-        DynamicJsonDocument doc(256);
-        doc["timestamp"] = getTimestamp();
-        doc["ap_id"] = ssidName;
-        doc["mac_address"] = bssid;
-        doc["device_name"] = DEVICE_NAME;
-        doc["rssi"] = rssi;
+      String bssid = WiFi.BSSIDstr(i);
+      int rssi = WiFi.RSSI(i);
 
-        char payload[256];
-        serializeJson(doc, payload);
-        client.publish(mqtt_topic, payload);
+      DynamicJsonDocument doc(256);
+      doc["timestamp"] = getTimestamp();
+      doc["ap_id"] = ssidName;
+      doc["mac_address"] = bssid;
+      doc["device_name"] = DEVICE_NAME;
+      doc["rssi"] = rssi;
 
+      char payload[256];
+      serializeJson(doc, payload);
+
+      if (!client.connected()) {
+        connectToMQTT();
+      }
+      client.loop();
+      if (client.publish(mqtt_topic, payload)) {
         Serial.println("Published:");
         Serial.println(payload);
-
-        M5.Lcd.printf("%s (%d dBm)\n", ssidName.c_str(), rssi);
+      } else {
+        Serial.println("MQTT publish failed!");
       }
-    }
 
-    scanInProgress = false;
+      M5.Lcd.printf("%s (%d dBm)\n", ssidName.c_str(), rssi);
+      delay(100);  // pacing between publishes
+    }
+  }
+
+  // Wait out remaining time to hit 6 seconds
+  unsigned long elapsed = millis() - startCycle;
+  if (elapsed < publishInterval) {
+    delay(publishInterval - elapsed);
   }
 }
