@@ -109,7 +109,7 @@ void loop() {
     String ssidName = WiFi.SSID(i);
 
     if (ssidName == "RPi_AP_Pierre" || ssidName == "RPi_AP_Alicia" ||
-        ssidName == "RPi_AP_KeeShen" || ssidName == "RPi_AP_EnThong") {
+        ssidName == "RPi_AP_EnThong" || ssidName == "RPi_AP_XY") {
 
       String bssid = WiFi.BSSIDstr(i);
       int rssi = WiFi.RSSI(i);
