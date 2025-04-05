@@ -24,7 +24,7 @@ def create_position_table():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS wifi_estimated_positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            mac TEXT,               -- We'll store your 'device_name' here
+            mac TEXT,
             x REAL,
             y REAL,
             timestamp DATETIME,

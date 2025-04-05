@@ -12,7 +12,8 @@ cursor.execute("""
         ap_id TEXT DEFAULT 'Unknown',
         mac TEXT NOT NULL,
         device_name TEXT NOT NULL,
-        rssi INTEGER NOT NULL
+        rssi INTEGER NOT NULL,
+        latency REAL
     )
 """)
 
