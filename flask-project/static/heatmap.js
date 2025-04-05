@@ -13,10 +13,10 @@ document.addEventListener("DOMContentLoaded", function () {
       blur: 0.75
     });
   
-    const MIN_X = 0;
-    const MAX_X = 4.3;
-    const MIN_Y = 0;
-    const MAX_Y = 11.68;
+    const MIN_X = -15;
+    const MAX_X = 15;
+    const MIN_Y = -15;
+    const MAX_Y = 20;
   
     function loadHeatmap(mode = "ble") {
       fetch(`/api/heatmap?mode=${mode}`)
