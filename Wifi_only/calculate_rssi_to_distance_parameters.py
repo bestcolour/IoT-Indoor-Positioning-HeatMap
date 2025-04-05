@@ -7,7 +7,7 @@ import numpy as np
 # read more: https://www.gaussianwaves.com/2013/09/log-distance-path-loss-or-log-normal-shadowing-model/
 # 1) Database path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE = os.path.join(BASE_DIR, "positioning.db")
+DATABASE = os.path.join(BASE_DIR, "calculate_loss_exponent_dataset.db")
 
 # Optional: Define column names
 COLUMN_ID = 'ID'
