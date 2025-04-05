@@ -36,7 +36,7 @@ def plotly_heatmap():
         return "No data found", 404
     df["value"] = 1
 
-    img_path = os.path.join("static", "Retail-store-layouts-Grid.jpg")
+    img_path = os.path.join("static", "supermarket-layout.png")
     img = Image.open(img_path)
     width, height = img.size
 
@@ -63,7 +63,16 @@ def plotly_heatmap():
         z=zvals,
         x=xgrid,
         y=ygrid,
-        colorscale="Jet",
+        colorscale=[
+            [0.0, "rgb(0, 0, 255)"],
+            [0.1, "rgb(0, 255, 255)"],
+            [0.2, "rgb(0, 255, 128)"],
+            [0.4, "rgb(0, 255, 0)"],
+            [0.6, "rgb(255, 255, 0)"],
+            [0.8, "rgb(255, 165, 0)"],
+            [0.9, "rgb(255, 69, 0)"],
+            [1.0, "rgb(255, 0, 0)"]
+        ],
         zmin=0.01,
         zmax=1.0,
         opacity=0.85,
