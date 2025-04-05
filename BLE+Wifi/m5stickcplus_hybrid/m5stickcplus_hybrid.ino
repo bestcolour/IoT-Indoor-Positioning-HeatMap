@@ -11,13 +11,13 @@
 const char* ssid = "kys_dont_kys";
 const char* password = "killmepls";
 
-const char* mqtt_server = "192.168.33.64";
+const char* mqtt_server = "192.168.33.148";
 const int mqtt_port = 1883;
 const char* mqtt_user = "team19";
 const char* mqtt_password = "test123";
 const char* mqtt_topic_wifi = "wifi/rssi";
 
-const char* DEVICE_NAME = "M5StickCPlus-Pierre";
+const char* DEVICE_NAME = "M5StickCPlus-KeeShen";
 #define BEACON_UUID "12345678-9012-3456-7890-1234567890AB"
 
 WiFiClient espClient;

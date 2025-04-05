@@ -2,21 +2,23 @@ import os
 import sqlite3
 import numpy as np
 from scipy.optimize import least_squares
-from datetime import datetime, timedelta
+from datetime import datetime
+from collections import defaultdict
 from rssi_filter import rssi_to_distance
 
 # Database path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE = os.path.join(BASE_DIR, "../BLE_only/positioning.db")
+DATABASE = os.path.join(BASE_DIR, "positioning.db")
 
 # AP coordinates
 AP_COORDINATES = {
-    "RPi_AP_XY": (4.96, 0),
-    "RPi_AP_Pierre": (4.96, 8.06),
-    "RPi_AP_EnThong": (0, 8.06),
-    "RPi_AP_Alicia": (0, 0)
+    "xypi": (4.96, 0),
+    "pierre": (4.96, 8.06),
+    "enthong": (0, 8.06),
+    "aliciapi": (0, 0)
 }
 
+# Create estimated_positions table with device_name
 def create_position_table():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -24,6 +26,7 @@ def create_position_table():
         CREATE TABLE IF NOT EXISTS estimated_positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             mac TEXT,
+            device_name TEXT,
             x REAL,
             y REAL,
             timestamp DATETIME,
@@ -33,48 +36,60 @@ def create_position_table():
     conn.commit()
     conn.close()
 
-# Fetch & group RSSI values per mac using ±1s time window
+# Group RSSI readings by MAC within ±2s window
 def fetch_grouped_rssi():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    cursor.execute("SELECT mac, ap_id, timestamp, filtered_rssi FROM filtered_rssi ORDER BY timestamp ASC")
+    cursor.execute("""
+        SELECT mac, device_name, ap_id, timestamp, filtered_rssi
+        FROM filtered_rssi
+        ORDER BY timestamp ASC
+    """)
     raw_data = cursor.fetchall()
     conn.close()
 
-    # Group by mac: {mac: [(datetime, ap_id, rssi)]}
-    grouped = {}
-    for mac, ap_id, ts, rssi in raw_data:
+    grouped = defaultdict(list)
+    for mac, device_name, ap_id, ts, rssi in raw_data:
         ts_dt = datetime.fromisoformat(ts)
-        grouped.setdefault(mac, []).append((ts_dt, ap_id, rssi))
+        grouped[mac].append((ts_dt, ap_id, rssi, device_name))
 
-    # Bucket into ±1s windows: {mac: {timestamp: {ap_id: rssi}}}
     windowed_data = {}
+    mac_device_name = {}
+
     for mac, readings in grouped.items():
-        used = set()
         readings.sort()
-        for i, (ts_i, ap_i, rssi_i) in enumerate(readings):
-            if i in used:
-                continue
+        i = 0
+        while i < len(readings):
+            ts_i, ap_i, rssi_i, dev_name = readings[i]
             window = {ap_i: rssi_i}
             timestamps = [ts_i]
+            j = i + 1
 
-            for j in range(i + 1, len(readings)):
-                ts_j, ap_j, rssi_j = readings[j]
-                if abs((ts_j - ts_i).total_seconds()) <= 2:
+            while j < len(readings):
+                ts_j, ap_j, rssi_j, _ = readings[j]
+                if (ts_j - ts_i).total_seconds() <= 3:
                     window[ap_j] = rssi_j
                     timestamps.append(ts_j)
-                    used.add(j)
+                    j += 1
+                else:
+                    break
 
-            if len(window) >= 3:
+            if len(window) == 3:
                 mid_ts = min(timestamps) + (max(timestamps) - min(timestamps)) / 2
                 ts_str = mid_ts.isoformat()
+
                 if mac not in windowed_data:
                     windowed_data[mac] = {}
+                    mac_device_name[mac] = dev_name
+
                 windowed_data[mac][ts_str] = window
+                i = j  # Skip overlapping
+            else:
+                i += 1
 
-    return windowed_data  # {mac: {timestamp: {ap_id: rssi}}}
+    return windowed_data, mac_device_name
 
-# Trilateration (improved + fallback)
+# Nonlinear least squares trilateration
 def improved_trilateration(ap_positions, distances):
     points = np.array(ap_positions)
     dists = np.array(distances)
@@ -90,13 +105,14 @@ def improved_trilateration(ap_positions, distances):
     except:
         return None, None
 
+# Linear fallback trilateration
 def weighted_trilateration(ap_positions, distances):
     A, b, weights = [], [], []
     for i in range(1, len(ap_positions)):
         x0, y0 = ap_positions[0]
         xi, yi = ap_positions[i]
         di_sq = distances[i]**2 - distances[0]**2
-        A.append([2*(xi - x0), 2*(yi - y0)])
+        A.append([2 * (xi - x0), 2 * (yi - y0)])
         b.append(di_sq - (xi**2 + yi**2 - x0**2 - y0**2))
         weights.append(1 / (distances[i] + 1e-6))
     try:
@@ -106,12 +122,13 @@ def weighted_trilateration(ap_positions, distances):
     except:
         return None, None
 
-# Position estimation
+# Estimate positions from grouped RSSI data
 def estimate_positions():
-    grouped = fetch_grouped_rssi()
+    grouped, mac_device_name = fetch_grouped_rssi()
     estimated = {}
 
     for mac, time_groups in grouped.items():
+        device_name = mac_device_name.get(mac, "Unknown")
         for timestamp, ap_rssi in time_groups.items():
             ap_positions, distances = [], []
             for ap_id, rssi in ap_rssi.items():
@@ -119,33 +136,33 @@ def estimate_positions():
                     ap_positions.append(AP_COORDINATES[ap_id])
                     distances.append(rssi_to_distance(rssi))
 
-            if len(ap_positions) == 3:
+            if len(ap_positions) >= 3:
                 result = improved_trilateration(ap_positions, distances)
                 if result is None or len(result) != 2:
                     result = weighted_trilateration(ap_positions, distances)
 
                 if result is not None and len(result) == 2:
                     x, y = float(result[0]), float(result[1])
-                    estimated[(mac, timestamp)] = (x, y)
-                    print(f"✓ Estimated: MAC={mac}, X={x:.2f}, Y={y:.2f}, Time={timestamp}")
+                    estimated[(mac, timestamp)] = (x, y, device_name)
+                    print(f"✓ Estimated: MAC={mac}, Name={device_name}, X={x:.2f}, Y={y:.2f}, Time={timestamp}")
                 else:
                     print(f"✗ Failed to estimate for MAC={mac} at {timestamp}")
 
     return estimated
 
-# Save to DB
+# Store estimated positions to DB
 def store_positions(positions):
     if not positions:
         print("No new positions to store.")
         return
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    for (mac, timestamp), (x, y) in positions.items():
+    for (mac, timestamp), (x, y, device_name) in positions.items():
         cursor.execute("""
-            INSERT OR IGNORE INTO estimated_positions (mac, x, y, timestamp)
-            VALUES (?, ?, ?, ?)
-        """, (mac, x, y, timestamp))
-        print(f"→ Stored: MAC={mac}, X={x:.2f}, Y={y:.2f}, Timestamp={timestamp}")
+            INSERT OR IGNORE INTO estimated_positions (mac, device_name, x, y, timestamp)
+            VALUES (?, ?, ?, ?, ?)
+        """, (mac, device_name, x, y, timestamp))
+        print(f"→ Stored: MAC={mac}, Name={device_name}, X={x:.2f}, Y={y:.2f}, Timestamp={timestamp}")
     conn.commit()
     conn.close()
     print(f"{len(positions)} new positions stored.\n")
@@ -153,10 +170,10 @@ def store_positions(positions):
 # Entry point
 if __name__ == "__main__":
     create_position_table()
-    print("==== Estimating Positions with ±1s Grouping ====")
+    print("==== Estimating Positions (±2s Window, ≥3 APs) ====")
     try:
-        positions = estimate_positions()
-        store_positions(positions)
-        print("==== Script Completed ====")
-    except Exception as e:
-        print(f"Error: {e}")
+        results = estimate_positions()
+        store_positions(results)
+        print("==== Done ====")
+    except Exception as ex:
+        print("Error:", ex)
