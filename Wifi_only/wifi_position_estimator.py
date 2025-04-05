@@ -12,9 +12,9 @@ DATABASE = os.path.join(BASE_DIR, "positioning.db")
 # 2) AP coordinates for each ap_id in your DB.
 #    Make sure these keys match what's actually in your "ap_id" column.
 AP_COORDINATES = {
-    "RPi_AP_KeeShen": (2.15, 5.84),
-    "RPi_AP_Pierre": (0, 5.84),
-    "RPi_AP_EnThong": (2.15, 0),
+    "RPi_AP_XY": (4.96, 0),
+    "RPi_AP_Pierre": (4.96, 8.06),
+    "RPi_AP_EnThong": (0, 8.06),
     "RPi_AP_Alicia": (0, 0)
 }
 
@@ -24,10 +24,11 @@ def create_position_table():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS wifi_estimated_positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            mac TEXT,               -- We'll store your 'device_name' here
+            mac TEXT,
             x REAL,
             y REAL,
             timestamp DATETIME,
+            device_name TEXT,
             UNIQUE(mac, timestamp)
         )
     """)
@@ -42,7 +43,7 @@ def fetch_grouped_rssi():
 
     # Pull data from your wifi_filtered_rssi table:
     cursor.execute("""
-        SELECT device_name, ap_id, timestamp, filtered_rssi
+        SELECT device_name, mac, ap_id, timestamp, filtered_rssi
         FROM wifi_filtered_rssi
         ORDER BY timestamp ASC
     """)
@@ -51,14 +52,14 @@ def fetch_grouped_rssi():
 
     # Group by device_name => { "M5StickCPlus-KeeShen": [(datetime, ap_id, rssi), ...], ... }
     grouped = {}
-    for device_name, ap_id, ts, rssi in raw_data:
+    for device_name, mac, ap_id, ts, rssi in raw_data:
         # If timestamps are "YYYY-MM-DD HH:MM:SS":
         ts_dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
         grouped.setdefault(device_name, []).append((ts_dt, ap_id, rssi))
 
     # Bucket into ±2s windows => {device_name: {timestamp: {ap_id: rssi, ...}}, ...}
     windowed_data = {}
-    for dev_name, readings in grouped.items():
+    for device_name, readings in grouped.items():
         used = set()
         # Sort by datetime
         readings.sort(key=lambda x: x[0])
@@ -86,9 +87,9 @@ def fetch_grouped_rssi():
                 mid_ts = min_t + (max_t - min_t) / 2
                 ts_str = mid_ts.strftime("%Y-%m-%d %H:%M:%S")
 
-                if dev_name not in windowed_data:
-                    windowed_data[dev_name] = {}
-                windowed_data[dev_name][ts_str] = window
+                if device_name not in windowed_data:
+                    windowed_data[device_name] = {}
+                windowed_data[device_name][ts_str] = window
 
     return windowed_data
 
@@ -136,7 +137,7 @@ def estimate_positions():
     windowed = fetch_grouped_rssi()
     estimated = {}
 
-    for dev_name, time_groups in windowed.items():
+    for device_name, time_groups in windowed.items():
         for ts_str, ap_rssi_dict in time_groups.items():
             ap_positions, distances = [], []
             for ap_id, rssi in ap_rssi_dict.items():
@@ -149,12 +150,17 @@ def estimate_positions():
                 result = improved_trilateration(ap_positions, distances)
                 if result is None or len(result) != 2:
                     result = weighted_trilateration(ap_positions, distances)
+
                 if result is not None and len(result) == 2:
                     x, y = float(result[0]), float(result[1])
-                    estimated[(dev_name, ts_str)] = (x, y)
-                    print(f"✓ {dev_name} @ {ts_str}: X={x:.2f}, Y={y:.2f}")
+                    mac = find_mac_for_device_at_time(device_name, ts_str)
+                    if mac:
+                        estimated[(device_name, mac, ts_str)] = (x, y)
+                        print(f"{device_name} ({mac}) @ {ts_str}: X={x:.2f}, Y={y:.2f}")
+                    else:
+                        print(f"No MAC found for {device_name} @ {ts_str}")
                 else:
-                    print(f"✗ Trilateration failed for {dev_name} @ {ts_str}")
+                    print(f"Trilateration failed for {device_name} @ {ts_str}")
 
     return estimated
 
@@ -167,17 +173,30 @@ def store_positions(positions):
 
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    for (dev_name, ts_str), (x, y) in positions.items():
+    for (device_name, mac, ts_str), (x, y) in positions.items():
         cursor.execute("""
-            INSERT OR IGNORE INTO wifi_estimated_positions (mac, x, y, timestamp)
-            VALUES (?, ?, ?, ?)
-        """, (dev_name, x, y, ts_str))
-        print(f"→ Stored: {dev_name} @ {ts_str} => X={x:.2f}, Y={y:.2f}")
+            INSERT OR IGNORE INTO wifi_estimated_positions (mac, x, y, timestamp, device_name)
+            VALUES (?, ?, ?, ?, ?)
+        """, (mac, x, y, ts_str, device_name))
+        print(f"→ Stored: {device_name} ({mac}) @ {ts_str} => X={x:.2f}, Y={y:.2f}")
 
     conn.commit()
     conn.close()
     print(f"{len(positions)} new positions stored.")
 
+def find_mac_for_device_at_time(device_name, timestamp_str):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT mac FROM wifi_filtered_rssi
+        WHERE device_name = ?
+        AND ABS(strftime('%s', timestamp) - strftime('%s', ?)) <= 2
+        ORDER BY ABS(strftime('%s', timestamp) - strftime('%s', ?)) ASC
+        LIMIT 1
+    """, (device_name, timestamp_str, timestamp_str))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
 
 # 7) Main
 if __name__ == "__main__":

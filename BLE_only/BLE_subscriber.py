@@ -39,6 +39,11 @@ def on_message(client, userdata, msg):
         data = json.loads(msg.payload.decode())  # Convert JSON to dictionary
         print("Received MQTT Data:", data)  # Debugging line
 
+        receive_time = time.time()  # Timestamp when message is received
+        send_time = float(data.get("timestamp", receive_time))  # Timestamp from publisher
+        latency = receive_time - send_time
+        print(f"Latency: {latency:.3f} seconds")
+
         if "mac_address" in data and "device_name" in data and "rssi" in data:
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
             ap_id = data.get("ap_id", "Unknown")
@@ -47,8 +52,8 @@ def on_message(client, userdata, msg):
             rssi = int(data["rssi"])
 
             cursor.execute(
-                "INSERT INTO ble_rssi (timestamp, ap_id, mac, device_name, rssi) VALUES (?, ?, ?, ?, ?)",
-                (timestamp, ap_id, mac, device_name, rssi)
+                "INSERT INTO ble_rssi (timestamp, ap_id, mac, device_name, rssi, latency) VALUES (?, ?, ?, ?, ?, ?)",
+                (time.strftime("%Y-%m-%d %H:%M:%S"), ap_id, mac, device_name, rssi, latency)
             )
             conn.commit()
             print(f"Data Stored: {timestamp} | AP: {ap_id} | MAC: {mac} | Device: {device_name} | RSSI: {rssi} dBm")

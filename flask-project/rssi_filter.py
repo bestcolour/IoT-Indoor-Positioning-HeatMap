@@ -66,7 +66,7 @@ def kalman_filter_rssi(mac, rssi):
     return kalman_filters[mac].update(rssi)
 
 # RSSI to Distance Conversion using Log-Distance Path Loss Model
-def rssi_to_distance(rssi, A=-59, n=3.0):
+def rssi_to_distance(rssi, A=-55.525, n=0.73529100890785):
     """
     Converts RSSI to estimated distance using the log-distance path loss model.
     
