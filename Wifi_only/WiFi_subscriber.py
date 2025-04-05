@@ -46,9 +46,14 @@ def on_message(client, userdata, msg):
             device_name = data["device_name"]
             rssi = int(data["rssi"])
 
+            receive_time = time.time()  # When message is received
+            send_time = float(data.get("timestamp_epoch", receive_time))  # fallback in case it's missing
+            latency = receive_time - send_time
+            print(f"Latency: {latency:.3f} seconds")
+
             cursor.execute(
-                "INSERT INTO wifi_rssi (timestamp, ap_id, mac, device_name, rssi) VALUES (?, ?, ?, ?, ?)",
-                (timestamp, ap_id, mac, device_name, rssi)
+                "INSERT INTO wifi_rssi (timestamp, ap_id, mac, device_name, rssi, latency) VALUES (?, ?, ?, ?, ?, ?)",
+                (data["timestamp"], ap_id, mac, device_name, rssi, latency)
             )
             conn.commit()
             print(f"Stored: {timestamp} | AP: {ap_id} | MAC: {mac} | Device: {device_name} | RSSI: {rssi} dBm")

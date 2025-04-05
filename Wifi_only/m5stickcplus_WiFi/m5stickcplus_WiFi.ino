@@ -116,6 +116,7 @@ void loop() {
 
       DynamicJsonDocument doc(256);
       doc["timestamp"] = getTimestamp();
+      doc["timestamp_epoch"] = time(nullptr); // epoch timestamp to calculate latency
       doc["ap_id"] = ssidName;
       doc["mac_address"] = bssid;
       doc["device_name"] = DEVICE_NAME;
