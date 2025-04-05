@@ -21,10 +21,10 @@ columns = [COLUMN_ID, COLUMN_TIMESTAMP, COLUMN_AP_ID, COLUMN_MAC, COLUMN_DEVICE_
 
 #ks - 1, alicia - 4th , xy - 2nd , eth - 3rd
 # Sort the devices based on the metres used
-ONE_METRE_TESTING_M5_DEVICE_NAME = "M5StickCPlus-KeeShen" # change this to the m5stick device's name used to test 
-TWO_METRE_TESTING_M5_DEVICE_NAME = "M5StickCPlus-XinYi" # change this to the m5stick device's name used to test 
-FOUR_METRE_TESTING_M5_DEVICE_NAME = "M5StickCPlus-Alicia" # change this to the m5stick device's name used to test 
-SIX_METRE_TESTING_M5_DEVICE_NAME = "M5StickCPlus-Enthong" # change this to the m5stick device's name used to test 
+ONE_METRE_TESTING_M5_DEVICE_NAME = "M5StickCPlus-Enthong" # change this to the m5stick device's name used to test 
+TWO_METRE_TESTING_M5_DEVICE_NAME = "M5StickCPlus-KeeShen" # change this to the m5stick device's name used to test 
+FOUR_METRE_TESTING_M5_DEVICE_NAME = "M5StickCPlus-XinYi" # change this to the m5stick device's name used to test 
+SIX_METRE_TESTING_M5_DEVICE_NAME = "M5StickCPlus-Alicia" # change this to the m5stick device's name used to test 
 
 # store all intervals except for 1 metre in a list as 1 metre readings will be used to calculate A
 DISTANCE_INTERVALS = [ONE_METRE_TESTING_M5_DEVICE_NAME,TWO_METRE_TESTING_M5_DEVICE_NAME,FOUR_METRE_TESTING_M5_DEVICE_NAME,SIX_METRE_TESTING_M5_DEVICE_NAME]
@@ -75,11 +75,13 @@ def calculate_n_for_measurements_from_df(df, A):
     - average_n: The average of all calculated n values.
     """
     n_values = []
+    raw_rssi = []
 
     # Loop through the rows, skipping the first row (distance = 1 meter)
     for _, row in df.iterrows():
         distance = device_to_dist_dict.get(row[COLUMN_DEVICE_NAME])
         rssi = row[COLUMN_RSSI]
+        raw_rssi.append(rssi)
         
         if distance == 1:  # Skip the 1-meter point as n = 0 at 1 meter
             continue
@@ -90,8 +92,9 @@ def calculate_n_for_measurements_from_df(df, A):
     
     # Calculate the average n
     average_n = np.mean(n_values) if n_values else 0  # Avoid division by zero if no values
-    
-    return n_values, average_n
+    average_rssi = np.mean(raw_rssi) if raw_rssi else 0
+
+    return average_rssi,n_values, average_n
 
 
 
@@ -133,7 +136,8 @@ for interval in DISTANCE_INTERVALS:
     # Use the boolean Series to select the rows
     filtered_df = df[condition]
 
-    _, avg_n = calculate_n_for_measurements_from_df(df=filtered_df,A=A)
+    average_rssi,_, avg_n = calculate_n_for_measurements_from_df(df=filtered_df,A=A)
+    print(f"The average rssi for this interval: {interval} is {average_rssi}")
     n_values.append(avg_n) # average n for this specific distance is appended to list
     pass
 
