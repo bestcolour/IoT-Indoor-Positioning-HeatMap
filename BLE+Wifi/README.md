@@ -7,8 +7,15 @@ sudo apt update && sudo apt upgrade -y
 ```
 sudo apt install -y network-manager dnsmasq hostapd iw net-tools dhcpcd5
 ```
+
+Call this command in the case that there is an dhcpcd service running. If there is an error "Failed to disable unit: Unit file dhcpcd.service does not exist", ignore it and move on
 ```
-sudo systemctl disable dhcpcd --now
+sudo systemctl disable dhcpcd --now 
+```
+
+#### Chained Command:
+```
+sudo apt update && sudo apt upgrade -y && sudo apt install -y network-manager dnsmasq hostapd iw net-tools dhcpcd5 && sudo systemctl disable dhcpcd --now 
 ```
 
 ### Step 2: Configure NetworkManager to Handle wlan0 and Ignore uap0
@@ -45,7 +52,7 @@ sudo ./rclocal.sh
 ```
 sudo nano /etc/dhcpcd.conf
 ```
-#### Replace 'x' with your desired IP address
+#### Add this at the bottom. Replace 'x' with your desired IP address
 ```
 interface uap0
     static ip_address=192.168.4.x/24
