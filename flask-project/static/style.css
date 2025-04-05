@@ -3,16 +3,3 @@
 @tailwind utilities;
 
 
-.heatmap-background {
-    width: 900%;
-    height: 80vh; /* explicit height required */
-    position: relative;
-    background-image: url("/static/Mockup floorplan.png");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-  }
-  
-
-  
-  
