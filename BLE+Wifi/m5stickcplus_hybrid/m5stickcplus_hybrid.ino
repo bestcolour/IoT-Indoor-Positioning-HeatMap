@@ -17,7 +17,7 @@ const char* mqtt_user = "team19";
 const char* mqtt_password = "test123";
 const char* mqtt_topic_wifi = "wifi/rssi";
 
-const char* DEVICE_NAME = "M5StickCPlus-KeeShen";
+const char* DEVICE_NAME = "M5StickCPlus-EnThong";
 #define BEACON_UUID "12345678-9012-3456-7890-1234567890AB"
 
 WiFiClient espClient;
@@ -75,6 +75,7 @@ String getTimestamp() {
 
 void setup() {
   M5.begin();
+  Serial.println("M5StickCPlus initialized successfully.");
   M5.Lcd.setRotation(3);
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextSize(1);
@@ -92,7 +93,7 @@ void loop() {
   for (int i = 0; i < n; ++i) {
     String ssidName = WiFi.SSID(i);
     if (ssidName == "RPi_AP_Pierre" || ssidName == "RPi_AP_Alicia" ||
-        ssidName == "RPi_AP_KeeShen" || ssidName == "RPi_AP_EnThong") {
+        ssidName == "RPi_AP_XY" || ssidName == "RPi_AP_EnThong") {
       String bssid = WiFi.BSSIDstr(i);
       int rssi = WiFi.RSSI(i);
       time_t now = time(nullptr);

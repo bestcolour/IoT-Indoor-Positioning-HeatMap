@@ -5,10 +5,17 @@
 sudo apt update && sudo apt upgrade -y
 ```
 ```
-sudo apt install -y network-manager dnsmasq hostapd iw net-tools
+sudo apt install -y network-manager dnsmasq hostapd iw net-tools dhcpcd5
 ```
+
+Call this command in the case that there is an dhcpcd service running. If there is an error "Failed to disable unit: Unit file dhcpcd.service does not exist", ignore it and move on
 ```
-sudo systemctl disable dhcpcd --now
+sudo systemctl disable dhcpcd --now 
+```
+
+#### Chained Command:
+```
+sudo apt update && sudo apt upgrade -y && sudo apt install -y network-manager dnsmasq hostapd iw net-tools dhcpcd5 && sudo systemctl disable dhcpcd --now 
 ```
 
 ### Step 2: Configure NetworkManager to Handle wlan0 and Ignore uap0
@@ -45,7 +52,7 @@ sudo ./rclocal.sh
 ```
 sudo nano /etc/dhcpcd.conf
 ```
-#### Replace 'x' with your desired IP address
+#### Add this at the bottom. Replace 'x' with your desired IP address
 ```
 interface uap0
     static ip_address=192.168.4.x/24
@@ -68,7 +75,6 @@ dhcp-range=192.168.4.100,192.168.4.200,255.255.255.0,24h
 ```
 ```
 sudo systemctl enable dnsmasq
-sudo systemctl restart dnsmasq
 ```
 
 ### Step 6: Configure hostapd (Wi-Fi AP on uap0)
@@ -98,15 +104,14 @@ DAEMON_CONF="/etc/hostapd/hostapd_uap0.conf"
 sudo ln -s /etc/hostapd/hostapd_uap0.conf /etc/hostapd/hostapd.conf
 ```
 ```
-sudo systemctl unmask hostapd
-sudo systemctl enable hostapd
-sudo systemctl restart hostapd
+sudo systemctl unmask hostapd && sudo systemctl enable hostapd && sudo systemctl restart hostapd && sudo systemctl restart dnsmasq
 ```
 
 ### Step 7: Save Wi-Fi Profile for BLE & Hybrid Modes
 ```
 sudo nmcli device wifi connect "kys_dont_kys" password "killmepls" name "kys_dont_kys"
 ```
+You will need to reconnect through PuTTY after the previous command.
 ```
 sudo nmcli connection modify kys_dont_kys connection.autoconnect yes
 ```
@@ -128,26 +133,26 @@ sudo systemctl stop dnsmasq
 ```
 sudo nano ./wifi_only.sh
 ```
-Add this in:
+Add this in, CHANGE THE IP TO THE ONE YOU HAVE SET ABOVE AT STEP4:
 ```
 #!/bin/bash
 nmcli connection down kys_dont_kys
-if ! ip addr show uap0 | grep -q "192.168.4.1"; then
-  sudo ip addr add 192.168.4.1/24 dev uap0
+if ! ip addr show uap0 | grep -q "192.168.4.x"; then
+  sudo ip addr add 192.168.4.x/24 dev uap0
 fi
 sudo systemctl restart dnsmasq
 sudo systemctl restart hostapd
 ```
 
 ```
-sudo hybrid_mode.sh
+sudo nano ./hybrid_mode.sh
 ```
-Add this in:
+Add this in, CHANGE THE IP TO THE ONE YOU HAVE SET ABOVE AT STEP4:
 ```
 #!/bin/bash
 nmcli connection up kys_dont_kys
-if ! ip addr show uap0 | grep -q "192.168.4.1"; then
-  sudo ip addr add 192.168.4.1/24 dev uap0
+if ! ip addr show uap0 | grep -q "192.168.4.x"; then
+  sudo ip addr add 192.168.4.x/24 dev uap0
 fi
 sudo systemctl restart dnsmasq
 sudo systemctl restart hostapd
