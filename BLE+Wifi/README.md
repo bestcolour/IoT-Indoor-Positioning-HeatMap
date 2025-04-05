@@ -100,6 +100,7 @@ sudo ln -s /etc/hostapd/hostapd_uap0.conf /etc/hostapd/hostapd.conf
 sudo systemctl unmask hostapd
 sudo systemctl enable hostapd
 sudo systemctl restart hostapd
+sudo systemctl restart dnsmasq
 ```
 
 ### Step 7: Save Wi-Fi Profile for BLE & Hybrid Modes
