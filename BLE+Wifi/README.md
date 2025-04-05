@@ -145,7 +145,7 @@ sudo systemctl restart hostapd
 ```
 
 ```
-sudo nano hybrid_mode.sh
+sudo nano ./hybrid_mode.sh
 ```
 Add this in, CHANGE THE IP TO THE ONE YOU HAVE SET ABOVE AT STEP4:
 ```
