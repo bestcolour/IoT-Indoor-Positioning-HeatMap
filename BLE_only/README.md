@@ -39,7 +39,8 @@ sudo apt-get update && mkdir IoTProject && cd IoTProject && sudo apt-get install
 ```
 scp BLE_publisher.py <hostname>@<RaspberryPiIPAddress>:/home/<hostname>/IoTProject/bluepy/
 ```
-- Install the package paho-mqtt through the command 
+
+- Install the package paho-mqtt through the command (Skip to chained commands below if you want to skip the step by step installation)
 ```
 sudo pip3 install --break-system-packages paho-mqtt
 ```
@@ -48,7 +49,7 @@ sudo pip3 install --break-system-packages paho-mqtt
 sudo timedatectl set-ntp true
 ```
 ```
-sudo apt install ntpdate
+sudo apt install ntpdate -y
 ```
 ```
 sudo ntpdate time.google.com
@@ -57,6 +58,13 @@ sudo ntpdate time.google.com
 sudo timedatectl set-timezone Asia/Singapore
 
 ```
+
+The Chained Commands from 'Install the package paho-mqtt' to the end before running the publisher
+```
+sudo pip3 install --break-system-packages paho-mqtt && sudo timedatectl set-ntp true && sudo apt install ntpdate -y && sudo ntpdate time.google.com && sudo timedatectl set-timezone Asia/Singapore
+```
+
+
 - Run the following command to start the MQTT Publisher.
 ```
 sudo python BLE_publisher.py
