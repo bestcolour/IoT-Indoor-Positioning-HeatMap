@@ -80,8 +80,8 @@ def fetch_grouped_rssi():
                     timestamps.append(ts_j)
                     used.add(j)
 
-            # Keep only if >= 3 APs in this time window
-            if len(window) >= 3:
+            # Keep only if == 3 APs in this time window
+            if len(window) == 3:
                 # Calculate a "midpoint" timestamp
                 min_t, max_t = min(timestamps), max(timestamps)
                 mid_ts = min_t + (max_t - min_t) / 2

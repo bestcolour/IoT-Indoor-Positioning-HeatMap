@@ -5,7 +5,7 @@ import os
 
 # Database path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE = os.path.join(BASE_DIR, "../BLE_only/positioning.db")
+DATABASE = os.path.join(BASE_DIR, "positioning.db")
 
 # Kalman Filter for RSSI Smoothing
 class KalmanFilter:
@@ -51,10 +51,13 @@ def create_tables():
             timestamp DATETIME,
             ap_id TEXT,
             mac TEXT,
+            device_name TEXT,
             filtered_rssi REAL,
+            latency REAL,
             UNIQUE(timestamp, ap_id, mac)
         )
     """)
+
     
     conn.commit()
     conn.close()
@@ -120,12 +123,13 @@ def fetch_raw_rssi():
     
     # Get only entries we haven't processed yet
     cursor.execute("""
-        SELECT r.id, r.timestamp, r.ap_id, r.mac, r.rssi 
+        SELECT r.id, r.timestamp, r.ap_id, r.mac, r.device_name, r.rssi, r.latency
         FROM ble_rssi r
         LEFT JOIN filtered_rssi f ON r.timestamp = f.timestamp AND r.ap_id = f.ap_id AND r.mac = f.mac
         WHERE f.id IS NULL
         ORDER BY r.timestamp DESC
     """)
+
     
     data = cursor.fetchall()
     conn.close()
@@ -140,9 +144,10 @@ def batch_store_filtered_rssi(filtered_data):
     
     # Use executemany for batch inserts
     conn.executemany("""
-        INSERT OR IGNORE INTO filtered_rssi (timestamp, ap_id, mac, filtered_rssi)
-        VALUES (?, ?, ?, ?)
+        INSERT OR IGNORE INTO filtered_rssi (timestamp, ap_id, mac, device_name, filtered_rssi, latency)
+        VALUES (?, ?, ?, ?, ?, ?)
     """, filtered_data)
+
     
     rows_affected = conn.total_changes
     conn.commit()
@@ -159,9 +164,10 @@ def process_rssi():
     
     filtered_data = []
     for entry in raw_data:
-        rssi_id, timestamp, ap_id, mac, rssi = entry
+        rssi_id, timestamp, ap_id, mac, device_name, rssi, latency = entry
         filtered_rssi = kalman_filter_rssi(mac, rssi)
-        filtered_data.append((timestamp, ap_id, mac, filtered_rssi))
+        filtered_data.append((timestamp, ap_id, mac, device_name, filtered_rssi, latency))
+
     
     rows_stored = batch_store_filtered_rssi(filtered_data)
     return rows_stored
