@@ -104,10 +104,7 @@ DAEMON_CONF="/etc/hostapd/hostapd_uap0.conf"
 sudo ln -s /etc/hostapd/hostapd_uap0.conf /etc/hostapd/hostapd.conf
 ```
 ```
-sudo systemctl unmask hostapd
-sudo systemctl enable hostapd
-sudo systemctl restart hostapd
-sudo systemctl restart dnsmasq
+sudo systemctl unmask hostapd && sudo systemctl enable hostapd && sudo systemctl restart hostapd && sudo systemctl restart dnsmasq
 ```
 
 ### Step 7: Save Wi-Fi Profile for BLE & Hybrid Modes
@@ -136,7 +133,7 @@ sudo systemctl stop dnsmasq
 ```
 sudo nano ./wifi_only.sh
 ```
-Add this in:
+Add this in, CHANGE THE IP TO THE ONE YOU HAVE SET ABOVE AT STEP4:
 ```
 #!/bin/bash
 nmcli connection down kys_dont_kys
@@ -150,7 +147,7 @@ sudo systemctl restart hostapd
 ```
 sudo nano ./hybrid_mode.sh
 ```
-Add this in:
+Add this in, CHANGE THE IP TO THE ONE YOU HAVE SET ABOVE AT STEP4:
 ```
 #!/bin/bash
 nmcli connection up kys_dont_kys
