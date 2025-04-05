@@ -1,21 +1,18 @@
-
 import os
 import sqlite3
-from flask import Flask, render_template, request
-
-import plotly.graph_objects as go
-import numpy as np
-import pandas as pd
-from PIL import Image
 import base64
 import io
-import html as html_lib
-from scipy.ndimage import gaussian_filter
+from flask import Flask, render_template, request
+import plotly.graph_objects as go
+import pandas as pd
+import numpy as np
+from PIL import Image
+from scipy.stats import gaussian_kde
 
 app = Flask(__name__)
 
-# Base path setup
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BLE_DB = os.path.join(BASE_DIR, "../BLE_only/positioning.db")
 WIFI_DB = os.path.join(BASE_DIR, "../Wifi_only/positioning.db")
 
 @app.route("/")
@@ -24,50 +21,55 @@ def index():
 
 @app.route("/plotly-heatmap")
 def plotly_heatmap():
-    # === Load background image ===
-    image_path = os.path.join("static", "Retail-store-layouts-Grid.jpg")
-    img = Image.open(image_path)
-    width, height = img.size
+    mode = request.args.get("mode", "ble").lower()
+    db_path = BLE_DB if mode == "ble" else WIFI_DB
+    table = "estimated_positions" if mode == "ble" else "wifi_estimated_positions"
 
-    # === Query WiFi DB ===
-    conn = sqlite3.connect(WIFI_DB)
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT x, y FROM wifi_estimated_positions")
+    cursor.execute(f"SELECT x, y FROM {table}")
     rows = cursor.fetchall()
     conn.close()
 
-    if not rows:
-        return "No WiFi data found.", 404
+    df = pd.DataFrame(rows, columns=["x", "y"])
+    if df.empty:
+        return "No data found", 404
+    df["value"] = 1
 
-    data = pd.DataFrame(rows, columns=["x", "y"])
-    data["value"] = 1
+    img_path = os.path.join("static", "Retail-store-layouts-Grid.jpg")
+    img = Image.open(img_path)
+    width, height = img.size
 
-    # === Rescale coordinates to match image size ===
-    data["x"] = (data["x"] - data["x"].min()) / (data["x"].max() - data["x"].min()) * width
-    data["y"] = (data["y"] - data["y"].min()) / (data["y"].max() - data["y"].min()) * height
+    # Normalize x/y to image size
+    df["x"] = (df["x"] - df["x"].min()) / (df["x"].max() - df["x"].min()) * width
+    df["y"] = (df["y"] - df["y"].min()) / (df["y"].max() - df["y"].min()) * height
 
-    # === Bin into 2D heatmap ===
-    grid_x, grid_y = 150, 150
-    x_edges = np.linspace(0, width, grid_x + 1)
-    y_edges = np.linspace(0, height, grid_y + 1)
-    heatmap_matrix, xbins, ybins = np.histogram2d(
-        data['x'], data['y'], bins=[x_edges, y_edges], weights=data['value']
-    )
+    # KDE
+    xy = np.vstack([df["x"], df["y"]])
+    kde = gaussian_kde(xy, bw_method=0.1)  # Wider spread
+    xgrid = np.linspace(0, width, 300)
+    ygrid = np.linspace(0, height, 300)
+    xmesh, ymesh = np.meshgrid(xgrid, ygrid)
+    positions = np.vstack([xmesh.ravel(), ymesh.ravel()])
+    zvals = np.reshape(kde(positions).T, xmesh.shape)
 
-    # === Boost visibility ===
-    heatmap_matrix = gaussian_filter(heatmap_matrix, sigma=2)
-    heatmap_matrix[heatmap_matrix == 0] = None
+    # Normalize and mask
+    zvals = zvals / np.nanmax(zvals)
+    zvals[zvals < 0.01] = np.nan
 
+    # Plot
     fig = go.Figure()
     fig.add_trace(go.Heatmap(
-        z=heatmap_matrix.T,
-        x=xbins,
-        y=ybins,
-        colorscale='YlOrRd',  # brighter, no dark tones
-        opacity=0.75,
+        z=zvals,
+        x=xgrid,
+        y=ygrid,
+        colorscale="Jet",
+        zmin=0.01,
+        zmax=1.0,
+        opacity=0.85,
         showscale=True,
-        zsmooth='best',
-        zmax=2
+        zsmooth="best",
+        hoverinfo='skip'
     ))
 
     fig.update_layout(
@@ -77,22 +79,22 @@ def plotly_heatmap():
             x=0, y=0,
             sizex=width, sizey=height,
             sizing="stretch",
+            opacity=1.0,
             layer="below"
         )],
-        xaxis=dict(range=[0, width], scaleanchor="y", showgrid=False),
-        yaxis=dict(range=[height, 0], showgrid=False),
+        xaxis=dict(range=[0, width], showticklabels=False, showgrid=False, zeroline=False),
+        yaxis=dict(range=[height, 0], showticklabels=False, showgrid=False, zeroline=False),
         margin=dict(l=0, r=0, t=0, b=0),
-        width=width, height=height
+        width=width,
+        height=height
     )
 
-    html = fig.to_html(full_html=False, include_plotlyjs='cdn')
-    escaped_html = html_lib.escape(html)
-    return f"<iframe style='border:none;width:100%;height:100vh;' srcdoc='{escaped_html}'></iframe>"
+    return fig.to_html(full_html=False, include_plotlyjs='cdn')
 
 def encode_image(img):
     buf = io.BytesIO()
-    img.save(buf, format='PNG')
+    img.save(buf, format="PNG")
     return base64.b64encode(buf.getvalue()).decode()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
