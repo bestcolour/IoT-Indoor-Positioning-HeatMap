@@ -1,24 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>BLE Indoor Positioning Heatmap</title>
+  <meta charset="UTF-8">
+  <title>Indoor Positioning Heatmap</title>
+  <h2 class="text-4xl font-extrabold text-gray-800">Indoor Positioning Heatmap</h1>
 
-    <!-- Tailwind CSS -->
-    <link href="{{ url_for('static', filename='output.css') }}" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <link href="{{ url_for('static', filename='output.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 
-    <!-- Heatmap.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/heatmap.js"></script>
+  <!-- Heatmap.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/heatmap.js"></script>
 
-    <!-- Custom JavaScript for Heatmap -->
-    <script defer src="{{ url_for('static', filename='heatmap.js') }}"></script>
+  <!-- Custom JavaScript -->
+  <script defer src="{{ url_for('static', filename='heatmap.js') }}"></script>
 </head>
+<body class="bg-gray-100 flex flex-row items-start min-h-screen p-6 gap-6">
 
-<body class="bg-gray-100 flex flex-col items-center justify-center h-screen">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">BLE Indoor Positioning Heatmap</h1>
-
-    <div id="heatmapContainer" style="width: 1200px; height: 800px; position: relative; background: lightgray; border: 2px solid black;"></div>
-</body>
-
+    <!-- Left Panel: Title + Dropdown -->
+    <div class="flex flex-col space-y-4">
+      <h1 class="text-3xl font-extrabold text-gray-800 leading-tight">Indoor<br>Positioning<br>Heatmap</h1>
+  
+      <div class="flex gap-2 items-center">
+        <label for="modeSelector" class="text-md text-gray-700 font-medium">Select Source:</label>
+        <select id="modeSelector" class="p-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+          <option value="ble" selected>BLE</option>
+          <option value="wifi">WiFi</option>
+        </select>
+      </div>
+    </div>
+  
+    <!-- Right Panel: Heatmap -->
+    <div id="heatmapContainer" class="heatmap-background flex-grow rounded-lg overflow-hidden shadow-md"></div>
+  
+  </body>
+  
 </html>
