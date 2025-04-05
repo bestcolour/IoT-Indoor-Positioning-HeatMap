@@ -69,7 +69,7 @@ void connectToWiFi() {
   M5.Lcd.println("\nWiFi Connected!");
   M5.Lcd.println(WiFi.localIP());
 
-  configTime(0, 0, "time.google.com");
+  configTime(28800, 0, "time.google.com");  // UTC+8 for Singapore
   time_t now = time(nullptr);
   while (now < 100000) {
     delay(500);

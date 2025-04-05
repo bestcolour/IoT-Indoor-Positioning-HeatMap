@@ -172,3 +172,17 @@ sudo ./wifi_only.sh
 ```
 sudo ./hybrid_mode.sh
 ```
+
+## Transfer hybrid_publisher.py to all Raspberry Pis
+```
+scp hybrid_publisher.py <hostname>@<RaspberryPiIPAddress>:/home/<hostname>/IoTProject/bluepy/
+```
+## Run/compile the necessary files 
+On the M5StickCPlus, upload the file **m5stickcplus_hybrid.ino**
+
+Run the hybrid_publisher.py file on respective Raspberry Pis.
+```
+sudo python hybrid_publisher.py
+```
+
+Run the hybrid_subscriber.py file in the central processing unit (laptop).
