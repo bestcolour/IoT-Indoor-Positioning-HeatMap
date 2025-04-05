@@ -3,7 +3,7 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 
-#define DEVICE_NAME "M5Stick_BLE" // Replace with unique name for the beacon
+#define DEVICE_NAME "M5Stick_BLE_Alicia" // Replace with unique name for the beacon
 #define SERVICE_UUID "12345678-1234-5678-1234-56789abcdef0" // Replace with unique UUID
 
 void setup() {
