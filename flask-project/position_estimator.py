@@ -11,9 +11,10 @@ DATABASE = os.path.join(BASE_DIR, "../BLE_only/positioning.db")
 
 # AP coordinates
 AP_COORDINATES = {
-    "keshleepi": (0, 0),
-    "pierre": (342, 0),
-    "enthong": (0, 384)
+    "RPi_AP_XY": (4.96, 0),
+    "RPi_AP_Pierre": (4.96, 8.06),
+    "RPi_AP_EnThong": (0, 8.06),
+    "RPi_AP_Alicia": (0, 0)
 }
 
 def create_position_table():

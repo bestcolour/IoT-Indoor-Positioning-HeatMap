@@ -12,9 +12,9 @@ DATABASE = os.path.join(BASE_DIR, "positioning.db")
 # 2) AP coordinates for each ap_id in your DB.
 #    Make sure these keys match what's actually in your "ap_id" column.
 AP_COORDINATES = {
-    "RPi_AP_KeeShen": (2.15, 5.84),
-    "RPi_AP_Pierre": (0, 5.84),
-    "RPi_AP_EnThong": (2.15, 0),
+    "RPi_AP_XY": (4.96, 0),
+    "RPi_AP_Pierre": (4.96, 8.06),
+    "RPi_AP_EnThong": (0, 8.06),
     "RPi_AP_Alicia": (0, 0)
 }
 
