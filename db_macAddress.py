@@ -4,7 +4,7 @@ import os
 # List of paths to your positioning.db files
 DB_PATHS = [
     "BLE_only/positioning.db",
-    "Wifi_only/positioning.db",
+    # "Wifi_only/positioning.db",
     # "Hybrid/positioning.db"
 ]
 
@@ -18,11 +18,11 @@ DB_PATHS = [
 # ]
 
 GROUND_TRUTH = [
-    ('M5StickCPlus-Alicia', 1.24, 1.24), # Alicia
-    ('M5StickCPlus-KeeShen', 2.48, 4.03), # KeeShen
-    ('M5StickCPlus-Enthong', 1.24, 6.82), # En Thong
-    ('M5StickCPlus-XinYi', 4.34, 0.62), # Xin Yi
-    ('M5StickCPlus-Pierre', 4.34, 7.44), # Pierre
+    ('M5Stick_BLE_Alicia', 1.24, 1.24), # Alicia
+    ('M5Stick_BLE_KeeShen', 2.48, 4.03), # KeeShen
+    ('M5Stick_BLE_EnThong', 1.24, 6.82), # En Thong
+    ('M5Stick_BLE_XinYi', 4.34, 0.62), # Xin Yi
+    ('M5Stick_BLE_Pierre', 4.34, 7.44), # Pierre
 ]
 
 def insert_ground_truth(db_path):

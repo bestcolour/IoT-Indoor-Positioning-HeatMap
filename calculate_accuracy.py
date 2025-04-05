@@ -21,7 +21,13 @@ def calculate_accuracy(table_name, db_path, rssi_table):
         SELECT e.device_name, e.x, e.y, g.x, g.y, r.latency
         FROM {table_name} e
         JOIN ground_truth_positions g ON e.device_name = g.device_name
-        LEFT JOIN {rssi_table} r ON e.device_name = r.device_name
+        LEFT JOIN (
+            SELECT device_name, MIN(latency) AS latency
+            FROM {rssi_table}
+            WHERE latency >= 0
+            GROUP BY device_name
+        ) r ON e.device_name = r.device_name
+        LIMIT 400
         """
         rows = cursor.execute(query).fetchall()
 
@@ -45,8 +51,8 @@ def calculate_accuracy(table_name, db_path, rssi_table):
             if latencies:
                 mean_latency = sum(latencies) / len(latencies)
                 median_latency = sorted(latencies)[len(latencies) // 2]
-                print(f"→ Mean Latency: {mean_latency:.2f} ms")
-                print(f"→ Median Latency: {median_latency:.2f} ms\n")
+                print(f"→ Mean Latency: {mean_latency:.4f} ms")
+                print(f"→ Median Latency: {median_latency:.4f} ms\n")
             else:
                 print("→ No latency data found.\n")
         else:
@@ -70,7 +76,7 @@ if __name__ == "__main__":
     elif args.mode == "ble":
         db_path = "BLE_only/positioning.db"
         table_name = "estimated_positions"
-        rssi_table = "rssi"
+        rssi_table = "filtered_rssi"
     # elif args.mode == "hybrid":
     #     db_path = "Hybrid/positioning.db"
     #     table_name = "hybrid_estimated_positions"
