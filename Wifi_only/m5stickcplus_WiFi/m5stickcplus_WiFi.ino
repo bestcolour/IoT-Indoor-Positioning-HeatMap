@@ -9,14 +9,14 @@ const char* ssid     = "kys_dont_kys";
 const char* password = "killmepls";
 
 // === MQTT broker settings ===
-const char* mqtt_server   = "192.168.33.64";
+const char* mqtt_server   = "192.168.33.148";
 const int   mqtt_port     = 1883;
 const char* mqtt_user     = "team19";
 const char* mqtt_password = "test123";
 const char* mqtt_topic    = "wifi/rssi";
 
 // === AP Scanner identity ===
-const char* DEVICE_NAME = "M5StickCPlus-XinYi";
+const char* DEVICE_NAME = "M5StickCPlus-KeeShen";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
