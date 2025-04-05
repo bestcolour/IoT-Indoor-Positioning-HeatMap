@@ -5,7 +5,7 @@
 sudo apt update && sudo apt upgrade -y
 ```
 ```
-sudo apt install -y network-manager dnsmasq hostapd iw net-tools
+sudo apt install -y network-manager dnsmasq hostapd iw net-tools dhcpcd5
 ```
 ```
 sudo systemctl disable dhcpcd --now
@@ -68,7 +68,6 @@ dhcp-range=192.168.4.100,192.168.4.200,255.255.255.0,24h
 ```
 ```
 sudo systemctl enable dnsmasq
-sudo systemctl restart dnsmasq
 ```
 
 ### Step 6: Configure hostapd (Wi-Fi AP on uap0)
