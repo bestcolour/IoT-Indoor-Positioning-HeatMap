@@ -16,7 +16,7 @@ const char* mqtt_password = "test123";
 const char* mqtt_topic    = "wifi/rssi";
 
 // === AP Scanner identity ===
-const char* DEVICE_NAME = "M5StickCPlus-KeeShen";
+const char* DEVICE_NAME = "M5StickCPlus-XinYi";
 
 WiFiClient espClient;
 PubSubClient client(espClient);

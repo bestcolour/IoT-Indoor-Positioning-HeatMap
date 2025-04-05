@@ -7,7 +7,7 @@ from bluepy.btle import Scanner
 import socket
 
 # MQTT Broker Configuration
-MQTT_BROKER = "192.168.33.18"
+MQTT_BROKER = "192.168.33.148"
 MQTT_PORT = 1883
 MQTT_TOPIC = "ble/rssi"
 MQTT_USER = "team19"  # MQTT username
