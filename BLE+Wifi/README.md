@@ -107,6 +107,7 @@ sudo systemctl restart dnsmasq
 ```
 sudo nmcli device wifi connect "kys_dont_kys" password "killmepls" name "kys_dont_kys"
 ```
+You will need to reconnect through PuTTY after the previous command.
 ```
 sudo nmcli connection modify kys_dont_kys connection.autoconnect yes
 ```
@@ -132,22 +133,22 @@ Add this in:
 ```
 #!/bin/bash
 nmcli connection down kys_dont_kys
-if ! ip addr show uap0 | grep -q "192.168.4.1"; then
-  sudo ip addr add 192.168.4.1/24 dev uap0
+if ! ip addr show uap0 | grep -q "192.168.4.x"; then
+  sudo ip addr add 192.168.4.x/24 dev uap0
 fi
 sudo systemctl restart dnsmasq
 sudo systemctl restart hostapd
 ```
 
 ```
-sudo hybrid_mode.sh
+sudo ./hybrid_mode.sh
 ```
 Add this in:
 ```
 #!/bin/bash
 nmcli connection up kys_dont_kys
-if ! ip addr show uap0 | grep -q "192.168.4.1"; then
-  sudo ip addr add 192.168.4.1/24 dev uap0
+if ! ip addr show uap0 | grep -q "192.168.4.x"; then
+  sudo ip addr add 192.168.4.x/24 dev uap0
 fi
 sudo systemctl restart dnsmasq
 sudo systemctl restart hostapd
