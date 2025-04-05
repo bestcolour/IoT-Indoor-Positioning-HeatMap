@@ -40,7 +40,7 @@ def on_message(client, userdata, msg):
         print("Received MQTT Data:", data)  # Debugging line
 
         receive_time = time.time()  # Timestamp when message is received
-        send_time = float(data.get("timestamp", receive_time))  # Timestamp from publisher
+        send_time = float(data.get("timestamp_epoch", receive_time))  # Timestamp from publisher
         latency = receive_time - send_time
         print(f"Latency: {latency:.3f} seconds")
 

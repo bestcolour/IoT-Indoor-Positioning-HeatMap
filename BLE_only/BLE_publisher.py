@@ -31,8 +31,8 @@ while True:
     devices = scanner.scan(5.0)  # Scan for 5 seconds
     for dev in devices:
         if dev.addr.lower() in TARGET_MACS:  # Check if MAC is in the list
-            # timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            timestamp = time.time()  # Send epoch time (float)
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            timestamp_epoch = time.time()  # Send epoch time (float)
             device_name = "Unknown"
 
             # Try to get device name
@@ -43,6 +43,7 @@ while True:
             # Prepare MQTT payload
             payload = {
                 "timestamp": timestamp,
+                "timestamp_epoch": timestamp_epoch,
                 "ap_id": AP_IDENTIFIER,
                 "mac_address": dev.addr,
                 "device_name": device_name,

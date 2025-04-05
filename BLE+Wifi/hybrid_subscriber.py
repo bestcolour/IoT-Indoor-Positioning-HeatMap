@@ -4,7 +4,7 @@ import time
 import sqlite3
 
 # MQTT Config
-MQTT_BROKER = "192.168.33.64"
+MQTT_BROKER = "192.168.33.148"
 MQTT_PORT = 1883
 MQTT_TOPICS = [("wifi/rssi", 0), ("ble/rssi", 0)]
 MQTT_USERNAME = "team19"

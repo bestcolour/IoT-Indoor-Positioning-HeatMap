@@ -148,7 +148,7 @@ sudo systemctl restart hostapd
 ```
 
 ```
-sudo ./hybrid_mode.sh
+sudo nano ./hybrid_mode.sh
 ```
 Add this in:
 ```
