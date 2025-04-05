@@ -84,6 +84,19 @@ CREATE TABLE IF NOT EXISTS ble_filtered_rssi (
 
 conn.commit()
 
+# === Cleanup: Clear data on startup ===
+tables_to_clear = [
+    "wifi_rssi", "ble_rssi",
+    "wifi_estimated_positions", "ble_estimated_positions",
+    "wifi_filtered_rssi", "ble_filtered_rssi"
+]
+
+for table in tables_to_clear:
+    cursor.execute(f"DELETE FROM {table}")
+    cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{table}'")  # Reset autoincrement
+conn.commit()
+print("Cleared all tables on startup.")
+
 # === MQTT Callbacks ===
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
