@@ -27,7 +27,7 @@ def calculate_accuracy(table_name, db_path, rssi_table):
             WHERE latency >= 0
             GROUP BY device_name
         ) r ON e.device_name = r.device_name
-        LIMIT 400
+        LIMIT 300
         """
         rows = cursor.execute(query).fetchall()
 
@@ -77,8 +77,8 @@ if __name__ == "__main__":
         db_path = "BLE_only/positioning.db"
         table_name = "estimated_positions"
         rssi_table = "filtered_rssi"
-    # elif args.mode == "hybrid":
-    #     db_path = "Hybrid/positioning.db"
-    #     table_name = "hybrid_estimated_positions"
-    #     rssi_table = "hybrid_rssi"
+    elif args.mode == "hybrid":
+        db_path = "BLE+Wifi/positioning.db"
+        table_name = "hybrid_estimated_positions"
+        rssi_table = "hybrid_filtered_rssi"
     calculate_accuracy(table_name, db_path, rssi_table)

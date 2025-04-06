@@ -147,7 +147,7 @@ def estimate_positions():
                     dist = rssi_to_distance(rssi)
                     distances.append(dist)
 
-            if len(ap_positions) >= 3:
+            if len(ap_positions) == 3:
                 result = improved_trilateration(ap_positions, distances)
                 if result is None or len(result) != 2:
                     result = weighted_trilateration(ap_positions, distances)
