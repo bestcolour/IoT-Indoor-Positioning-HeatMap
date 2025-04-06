@@ -103,8 +103,7 @@ def improved_trilateration(ap_positions, distances):
         result = least_squares(
             residuals,
             x0=initial,
-            bounds=([0, 0], [4.96, 8.06]),
-            loss='soft_l1'
+            loss='soft_l1'  # Keep this if you still want robust loss
         )
         return result.x if result.success else (None, None)
     except:
