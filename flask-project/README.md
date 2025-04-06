@@ -15,8 +15,6 @@ You can install the required packages using:
 ```bash
 pip install flask pandas numpy plotly pillow scipy
 
-### 2. Run the Flask App
-
 After installing dependencies, run the Flask development server:
 
 ```bash
