@@ -107,7 +107,7 @@ def improved_trilateration(ap_positions, distances):
 
     try:
         initial = np.mean(points, axis=0)
-        bounds = ([0, 0], [4.96, 8.06])  # Lower and upper bounds for x and y
+        bounds = ([0, 0], [4.96, 8.06])  
         result = least_squares(residuals, initial, bounds=bounds, method='trf')
         return result.x if result.success else (None, None)
     except:
