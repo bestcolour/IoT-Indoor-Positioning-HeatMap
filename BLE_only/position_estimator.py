@@ -167,7 +167,7 @@ def store_positions(positions):
             INSERT OR IGNORE INTO estimated_positions (mac, device_name, x, y, timestamp)
             VALUES (?, ?, ?, ?, ?)
         """, (mac, device_name, x, y, timestamp))
-        print(f"→ Stored: MAC={mac}, Name={device_name}, X={x:.2f}, Y={y:.2f}, Timestamp={timestamp}")
+        # print(f"→ Stored: MAC={mac}, Name={device_name}, X={x:.2f}, Y={y:.2f}, Timestamp={timestamp}")
     conn.commit()
     conn.close()
     print(f"{len(positions)} new positions stored.\n")
