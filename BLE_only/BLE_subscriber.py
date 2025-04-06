@@ -4,11 +4,16 @@ import time
 import sqlite3
 
 # MQTT Config
-MQTT_BROKER = "192.168.33.148"
-MQTT_PORT = 1883
+MQTT_BROKER = "keshleepi.local"
+MQTT_PORT = 8883  # Use TLS port
 MQTT_TOPIC = "ble/rssi"
 MQTT_USERNAME = "team19"
 MQTT_PASSWORD = "test123"
+
+# TLS Certificate Paths
+CA_CERT = "certs/ca.crt"
+CLIENT_CERT = "certs/client.crt"
+CLIENT_KEY = "certs/client.key"
 
 # Database SQLite
 DATABASE = "positioning.db"
@@ -66,6 +71,12 @@ def on_message(client, userdata, msg):
 # Start MQTT Client
 client = mqtt.Client()
 client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+client.tls_set(
+    ca_certs=CA_CERT,
+    certfile=CLIENT_CERT,
+    keyfile=CLIENT_KEY
+)
+client.tls_insecure_set(False)
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect(MQTT_BROKER, MQTT_PORT, 60)
