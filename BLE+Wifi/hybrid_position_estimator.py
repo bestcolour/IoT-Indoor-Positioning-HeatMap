@@ -117,8 +117,11 @@ def estimate_positions():
     # for row in cursor.fetchall():
     #     print(row)
 
+    # Drop and recreate the hybrid_estimated_positions table
+    cursor.execute("DROP TABLE IF EXISTS hybrid_estimated_positions")
+
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS hybrid_estimated_positions (
+        CREATE TABLE hybrid_estimated_positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             device_name TEXT,
             x REAL,

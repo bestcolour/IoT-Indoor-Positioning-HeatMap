@@ -12,11 +12,11 @@ DB_PATHS_MAP = {
 # Define ground truth data for each mode
 GROUND_TRUTH_MAP = {
     "wifi": [
-        ('4c:75:25:cb:86:8e', 1.24, 1.24), # Alicia
-        ('ac:0b:fb:6f:9d:fe', 2.48, 4.03), # KeeShen
-        ('4c:75:25:cb:8e:36', 1.24, 6.82), # En Thong
-        ('4c:75:25:cb:83:26', 4.34, 0.62), # Xin Yi
-        ('4c:75:25:cb:8e:32', 4.34, 7.44), # Pierre
+        ('M5StickCPlus-Alicia', 1.24, 1.24), # Alicia
+        ('M5StickCPlus-KeeShen', 2.48, 4.03), # KeeShen
+        ('M5StickCPlus-Enthong', 1.24, 6.82), # En Thong
+        ('M5StickCPlus-XinYi', 4.34, 0.62), # Xin Yi
+        ('M5StickCPlus-Pierre', 4.34, 7.44), # Pierre
     ],
     "ble": [
         ('M5Stick_BLE_Alicia', 1.24, 1.24),

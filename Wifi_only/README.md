@@ -98,3 +98,12 @@ sudo chmod +x hotspot_mode.sh
 ```
 python WiFi_subscriber.py
 ```
+
+## To load the latest estimated position data:
+need to run the below 2 commands to keep fetching the latest datas:
+```
+python Wifi_only/wifi_rssi_filter.py
+```
+```
+python Wifi_only/wifi_position_estimator.py
+```

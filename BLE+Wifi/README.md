@@ -13,7 +13,7 @@ Call this command in the case that there is an dhcpcd service running. If there 
 sudo systemctl disable dhcpcd --now 
 ```
 
-#### Chained Command:
+#### Chained Command (use this call `sudo apt update && sudo apt upgrade -y` to `sudo systemctl disable dhcpcd --now `):
 ```
 sudo apt update && sudo apt upgrade -y && sudo apt install -y network-manager dnsmasq hostapd iw net-tools dhcpcd5 && sudo systemctl disable dhcpcd --now 
 ```
@@ -108,6 +108,7 @@ sudo systemctl unmask hostapd && sudo systemctl enable hostapd && sudo systemctl
 ```
 
 ### Step 7: Save Wi-Fi Profile for BLE & Hybrid Modes
+Replace "kys_dont_kys" and password below with your own network's ssid and password
 ```
 sudo nmcli device wifi connect "kys_dont_kys" password "killmepls" name "kys_dont_kys"
 ```
@@ -122,7 +123,7 @@ Ensure that you are in the IoTProject directory.
 ```
 sudo nano ./ble_only.sh
 ```
-Add this in:
+Add this in: RMB TO CHANGE "kys_dont_kys" TO YOUR SSID
 ```
 #!/bin/bash
 nmcli connection up kys_dont_kys  # Connect wlan0 to hotspot
@@ -133,7 +134,7 @@ sudo systemctl stop dnsmasq
 ```
 sudo nano ./wifi_only.sh
 ```
-Add this in, CHANGE THE IP TO THE ONE YOU HAVE SET ABOVE AT STEP4:
+Add this in, CHANGE THE IP TO THE ONE YOU HAVE SET ABOVE AT STEP4 and "kys_dont_kys" TO YOUR SSID:
 ```
 #!/bin/bash
 nmcli connection down kys_dont_kys
@@ -147,7 +148,7 @@ sudo systemctl restart hostapd
 ```
 sudo nano ./hybrid_mode.sh
 ```
-Add this in, CHANGE THE IP TO THE ONE YOU HAVE SET ABOVE AT STEP4:
+Add this in, CHANGE THE IP TO THE ONE YOU HAVE SET ABOVE AT STEP4 and "kys_dont_kys" TO YOUR SSID:
 ```
 #!/bin/bash
 nmcli connection up kys_dont_kys
@@ -186,3 +187,12 @@ sudo python hybrid_publisher.py
 ```
 
 Run the hybrid_subscriber.py file in the central processing unit (laptop).
+
+## To load the latest estimated position data:
+need to run the below 2 commands to keep fetching the latest datas:
+```
+python BLE+Wifi/hybrid_rssi_filter.py
+```
+```
+python BLE+Wifi/hybrid_position_estimator.py
+```

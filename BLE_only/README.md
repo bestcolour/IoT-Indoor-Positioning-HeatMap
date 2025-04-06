@@ -3,11 +3,10 @@
 - Change directory into "m5stickcplus_BLE", and ensure that the file "m5stickcplus_BLE.ino" is **uploaded** to your M5StickCPlus to configure your M5StickCPlus as a BLE beacon.
 ## Configuring Raspberry Pi as a MQTT Publisher
 - Next, ensure that you have access to a Raspberry Pi and run the following commands to install bluepy.
-
+(Skip to chained command below if you want to skip the step by step installation)
 ```
 sudo apt-get update
 ```
-
 ```
 mkdir IoTProject
 ```
@@ -30,7 +29,7 @@ python setup.py build
 sudo python setup.py install
 ```
 
-Chained commands:
+Chained commands (from `sudo apt-get update` to `sudo python setup.py install`):
 ```
 sudo apt-get update && mkdir IoTProject && cd IoTProject && sudo apt-get install git build-essential libglib2.0-dev -y && git clone https://github.com/IanHarvey/bluepy.git && cd bluepy && python setup.py build && sudo python setup.py install
 ```
@@ -59,7 +58,7 @@ sudo timedatectl set-timezone Asia/Singapore
 
 ```
 
-The Chained Commands from 'Install the package paho-mqtt' to the end before running the publisher
+The Chained Commands from `Install the package paho-mqtt` to `sudo timedatectl set-timezone Asia/Singapore`
 ```
 sudo pip3 install --break-system-packages paho-mqtt && sudo timedatectl set-ntp true && sudo apt install ntpdate -y && sudo ntpdate time.google.com && sudo timedatectl set-timezone Asia/Singapore
 ```
@@ -111,11 +110,11 @@ python BLE_subscriber.py
 ```
 
 
-## To run the 2 scripts:
+## To load the latest estimated position data:
 need to run the below 2 commands to keep fetching the latest datas:
 ```
-python flask-project/rssi_filter.py
+python BLE_only/rssi_filter.py
 ```
 ```
-python flask-project/position_estimator.py
+python BLE_only/position_estimator.py
 ```

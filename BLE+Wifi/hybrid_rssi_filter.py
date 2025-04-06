@@ -62,8 +62,12 @@ def normalize_ap_id(ap_id):
 def create_tables():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
+
+    # Drop the table if it exists
+    cursor.execute("DROP TABLE IF EXISTS hybrid_filtered_rssi")
+
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS hybrid_filtered_rssi (
+        CREATE TABLE hybrid_filtered_rssi (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME,
             ap_id TEXT,
