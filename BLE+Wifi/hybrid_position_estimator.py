@@ -46,6 +46,24 @@ def robust_trilateration(ap_positions, distances):
         print(f"Trilateration failed: {e}")
         return None
 
+def weighted_trilateration(ap_positions, distances):
+    """Linear, weighted approach."""
+    A, b, weights = [], [], []
+    for i in range(1, len(ap_positions)):
+        x0, y0 = ap_positions[0]
+        xi, yi = ap_positions[i]
+        di_sq = distances[i]**2 - distances[0]**2
+        A.append([2*(xi - x0), 2*(yi - y0)])
+        b.append(di_sq - (xi**2 + yi**2 - x0**2 - y0**2))
+        weights.append(1 / (distances[i] + 1e-6))
+
+    try:
+        A, b, W = np.array(A), np.array(b), np.diag(weights)
+        x = np.linalg.inv(A.T @ W @ A) @ A.T @ W @ b
+        return x
+    except:
+        return None
+
 def fetch_grouped_rssi(device_name, time_window=2):
     """Fetch RSSI readings for a device, grouped by timestamp windows."""
     conn = sqlite3.connect(DATABASE)
@@ -80,7 +98,7 @@ def fetch_grouped_rssi(device_name, time_window=2):
                 j += 1
             else:
                 break
-        if len(window) >= 3:  # Require ≥3 APs for trilateration
+        if len(window) == 3:  # Require ≥3 APs for trilateration
             mid_ts = min(timestamps) + (max(timestamps) - min(timestamps)) / 2
             windowed.append((mid_ts, window))
         i = j
@@ -95,9 +113,9 @@ def estimate_positions():
         FROM hybrid_filtered_rssi 
         LIMIT 10
     """)
-    print("Sample RSSI data:")
-    for row in cursor.fetchall():
-        print(row)
+    # print("Sample RSSI data:")
+    # for row in cursor.fetchall():
+    #     print(row)
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS hybrid_estimated_positions (
@@ -125,21 +143,26 @@ def estimate_positions():
                     ap_positions.append(AP_COORDINATES[ap_id])
                     distances.append(rssi_to_distance(rssi))
 
-            if len(ap_positions) >= 3:
+            if len(ap_positions) == 3:
                 position = robust_trilateration(ap_positions, distances)
+                method = "robust"
+
+                if position is None:
+                    position = weighted_trilateration(ap_positions, distances)
+                    method = "weighted_fallback"
+
                 if position is not None:
-                    x, y = position[0], position[1]  # Direct trilateration result
+                    x, y = position[0], position[1]
                     ts_str = ts.strftime("%Y-%m-%d %H:%M:%S")
                     cursor.execute("""
                         INSERT OR IGNORE INTO hybrid_estimated_positions
                         (device_name, x, y, timestamp, method)
                         VALUES (?, ?, ?, ?, ?)
-                    """, (device, x, y, ts_str, "trilateration"))
-                    print(f"{device} @ {ts_str} → X={x:.2f}, Y={y:.2f}")
+                    """, (device, x, y, ts_str, method))
 
     conn.commit()
     conn.close()
-    print("✅ Position estimation completed.")
+    print("Position estimation completed.") 
 
 if __name__ == "__main__":
     estimate_positions()

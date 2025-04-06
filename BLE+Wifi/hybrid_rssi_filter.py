@@ -69,6 +69,7 @@ def create_tables():
             ap_id TEXT,
             device_name TEXT,
             filtered_rssi REAL,
+            latency REAL,
             UNIQUE(timestamp, ap_id, device_name)
         )
     """)
@@ -79,9 +80,9 @@ def fetch_raw_rssi():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     cursor.execute(""" 
-        SELECT timestamp, ap_id, mac, device_name, rssi, 'BLE' AS signal_type FROM ble_rssi 
+        SELECT timestamp, ap_id, mac, device_name, rssi, latency, 'BLE' AS signal_type FROM ble_rssi 
         UNION ALL 
-        SELECT timestamp, ap_id, mac, device_name, rssi, 'WiFi' AS signal_type FROM wifi_rssi 
+        SELECT timestamp, ap_id, mac, device_name, rssi, latency, 'WiFi' AS signal_type FROM wifi_rssi 
         ORDER BY timestamp ASC
     """)
     data = cursor.fetchall()
@@ -93,27 +94,30 @@ def merge_and_filter_rssi():
     raw_data = fetch_raw_rssi()
 
     grouped = defaultdict(list)
-    for timestamp, ap_id, _, device_name, rssi, signal_type in raw_data:
+    for timestamp, ap_id, _, device_name, rssi, latency, signal_type in raw_data:
         ap_id = normalize_ap_id(ap_id)
         device_name = normalize_device_name(device_name)
         ts_dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-        grouped[(device_name, ap_id)].append((ts_dt, rssi, signal_type))
+        grouped[(device_name, ap_id)].append((ts_dt, rssi, latency, signal_type))
 
     filtered_entries = []
 
     for (device_name, ap_id), readings in grouped.items():
-        ble = [(ts, rssi) for ts, rssi, t in readings if t == 'BLE']
-        wifi = [(ts, rssi) for ts, rssi, t in readings if t == 'WiFi']
+        ble = [(ts, rssi, lat) for ts, rssi, lat, t in readings if t == 'BLE']
+        wifi = [(ts, rssi, lat) for ts, rssi, lat, t in readings if t == 'WiFi']
 
-        all_timestamps = sorted(set([ts for ts, _ in ble] + [ts for ts, _ in wifi]))
+        all_timestamps = sorted(set([ts for ts, _, _ in ble] + [ts for ts, _, _ in wifi]))
 
         for ts in all_timestamps:
-            nearby_ble = [rssi for ts_ble, rssi in ble if abs((ts_ble - ts).total_seconds()) <= 2]
-            nearby_wifi = [rssi for ts_wifi, rssi in wifi if abs((ts_wifi - ts).total_seconds()) <= 2]
+            nearby_ble = [(rssi, lat) for ts_ble, rssi, lat in ble if abs((ts_ble - ts).total_seconds()) <= 2]
+            nearby_wifi = [(rssi, lat) for ts_wifi, rssi, lat in wifi if abs((ts_wifi - ts).total_seconds()) <= 2]
 
             if nearby_ble and nearby_wifi:
-                avg_ble = np.mean(nearby_ble)
-                avg_wifi = np.mean(nearby_wifi)
+                avg_ble = np.mean([r for r, _ in nearby_ble])
+                avg_wifi = np.mean([r for r, _ in nearby_wifi])
+                avg_ble_lat = np.mean([lat for _, lat in nearby_ble])
+                avg_wifi_lat = np.mean([lat for _, lat in nearby_wifi])
+                fused_latency = (avg_ble_lat + avg_wifi_lat) / 2
 
                 ble_kf = get_kalman_filter(device_name, ap_id + "_BLE")
                 wifi_kf = get_kalman_filter(device_name, ap_id + "_WiFi")
@@ -124,19 +128,17 @@ def merge_and_filter_rssi():
                 fused_rssi = (filtered_ble + filtered_wifi) / 2
 
                 ts_str = ts.strftime("%Y-%m-%d %H:%M:%S")
-                filtered_entries.append((ts_str, ap_id, device_name, fused_rssi))
+                filtered_entries.append((ts_str, ap_id, device_name, fused_rssi, fused_latency))
 
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     cursor.executemany("""
         INSERT OR IGNORE INTO hybrid_filtered_rssi
-        (timestamp, ap_id, device_name, filtered_rssi)
-        VALUES (?, ?, ?, ?)
+        (timestamp, ap_id, device_name, filtered_rssi, latency)
+        VALUES (?, ?, ?, ?, ?)
     """, filtered_entries)
     conn.commit()
     conn.close()
-
-    print(f"Filtered entries stored: {len(filtered_entries)}")
 
 if __name__ == "__main__":
     merge_and_filter_rssi()

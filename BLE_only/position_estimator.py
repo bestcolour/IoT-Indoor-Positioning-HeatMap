@@ -141,7 +141,7 @@ def estimate_positions():
                     ap_positions.append(AP_COORDINATES[ap_id])
                     distances.append(rssi_to_distance(rssi))
 
-            if len(ap_positions) >= 3:
+            if len(ap_positions) == 3:
                 result = improved_trilateration(ap_positions, distances)
                 if result is None or len(result) != 2:
                     result = weighted_trilateration(ap_positions, distances)
@@ -149,9 +149,9 @@ def estimate_positions():
                 if result is not None and len(result) == 2:
                     x, y = float(result[0]), float(result[1])
                     estimated[(mac, timestamp)] = (x, y, device_name)
-                    print(f"Estimated: MAC={mac}, Name={device_name}, X={x:.2f}, Y={y:.2f}, Time={timestamp}")
-                else:
-                    print(f"Failed to estimate for MAC={mac} at {timestamp}")
+                #     print(f"Estimated: MAC={mac}, Name={device_name}, X={x:.2f}, Y={y:.2f}, Time={timestamp}")
+                # else:
+                #     print(f"Failed to estimate for MAC={mac} at {timestamp}")
 
     return estimated
 
@@ -170,12 +170,12 @@ def store_positions(positions):
         # print(f"→ Stored: MAC={mac}, Name={device_name}, X={x:.2f}, Y={y:.2f}, Timestamp={timestamp}")
     conn.commit()
     conn.close()
-    print(f"{len(positions)} new positions stored.\n")
+    # print(f"{len(positions)} new positions stored.\n")
 
 # Entry point
 if __name__ == "__main__":
     create_position_table()
-    print("==== Estimating Positions (±2s Window, ≥3 APs) ====")
+    print("==== Estimating Positions (±2s Window, ==3 APs) ====")
     try:
         results = estimate_positions()
         store_positions(results)
