@@ -107,7 +107,8 @@ def improved_trilateration(ap_positions, distances):
 
     try:
         initial = np.mean(points, axis=0)
-        result = least_squares(residuals, initial, method='lm')
+        bounds = ([0, 0], [4.96, 8.06])  
+        result = least_squares(residuals, initial, bounds=bounds, method='trf')
         return result.x if result.success else (None, None)
     except:
         return (None, None)
@@ -178,11 +179,11 @@ def store_positions(positions):
             INSERT OR IGNORE INTO wifi_estimated_positions (mac, x, y, timestamp, device_name)
             VALUES (?, ?, ?, ?, ?)
         """, (mac, x, y, ts_str, device_name))
-        print(f"→ Stored: {device_name} ({mac}) @ {ts_str} => X={x:.2f}, Y={y:.2f}")
+        # print(f"→ Stored: {device_name} ({mac}) @ {ts_str} => X={x:.2f}, Y={y:.2f}")
 
     conn.commit()
     conn.close()
-    print(f"{len(positions)} new positions stored.")
+    # print(f"{len(positions)} new positions stored.")
 
 def find_mac_for_device_at_time(device_name, timestamp_str):
     conn = sqlite3.connect(DATABASE)
