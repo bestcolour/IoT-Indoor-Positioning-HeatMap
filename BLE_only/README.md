@@ -114,8 +114,8 @@ python BLE_subscriber.py
 ## To run the 2 scripts:
 need to run the below 2 commands to keep fetching the latest datas:
 ```
-python flask-project/rssi_filter.py
+python BLE_only/rssi_filter.py
 ```
 ```
-python flask-project/position_estimator.py
+python BLE_only/position_estimator.py
 ```

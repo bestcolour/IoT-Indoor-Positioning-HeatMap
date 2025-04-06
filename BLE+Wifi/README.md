@@ -186,3 +186,12 @@ sudo python hybrid_publisher.py
 ```
 
 Run the hybrid_subscriber.py file in the central processing unit (laptop).
+
+## To run the 2 scripts:
+need to run the below 2 commands to keep fetching the latest datas:
+```
+python BLE+Wifi/hybrid_rssi_filter.py
+```
+```
+python BLE+Wifi/hybrid_position_estimator.py
+```
