@@ -36,7 +36,7 @@ def plotly_heatmap():
         return "No data found", 404
     df["value"] = 1
 
-    img_path = os.path.join("static", "supermarket-layout.png")
+    img_path = os.path.join("static", "Supermarket-Mockup-Layout.png")
     img = Image.open(img_path)
     width, height = img.size
 
