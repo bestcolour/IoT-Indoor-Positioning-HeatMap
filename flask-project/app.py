@@ -38,7 +38,7 @@ def plotly_heatmap():
 
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute(f"SELECT x, y FROM {table}")
+    cursor.execute(f"SELECT x, y FROM {table} LIMIT 400")  # <-- LIMIT to 400 rows for fair comparison
     rows = cursor.fetchall()
     conn.close()
 
@@ -46,21 +46,16 @@ def plotly_heatmap():
     if df.empty:
         return "No data found", 404
 
-    # Load and resize image for consistency
     img_path = os.path.join("static", "Supermarket-Mockup-Layout.png")
     img = Image.open(img_path)
     img = img.resize((1300, int(1300 * img.height / img.width)))
     width, height = img.size
 
-    # Normalize and scale coordinates
     df["x"] = (df["x"] - df["x"].min()) / (df["x"].max() - df["x"].min()) * width
     df["y"] = (df["y"] - df["y"].min()) / (df["y"].max() - df["y"].min()) * height
-
-    # Clamp values inside canvas
     df["x"] = df["x"].clip(lower=0, upper=width)
     df["y"] = df["y"].clip(lower=0, upper=height)
 
-    # KDE grid with padding
     padding = 20
     xy = np.vstack([df["x"], df["y"]])
     kde = gaussian_kde(xy, bw_method=0.1)
@@ -69,7 +64,6 @@ def plotly_heatmap():
     xmesh, ymesh = np.meshgrid(xgrid, ygrid)
     positions = np.vstack([xmesh.ravel(), ymesh.ravel()])
     zvals = np.reshape(kde(positions).T, xmesh.shape)
-
     zvals = zvals / np.nanmax(zvals)
     zvals[zvals < 0.01] = np.nan
 
