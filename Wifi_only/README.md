@@ -95,7 +95,7 @@ sudo chmod +x hotspot_mode.sh
 ```
 
 ## To load the latest estimated position data:
-need to run the below 2 commands to keep fetching the latest datas:
+Run the below 2 commands to fetch the latest datas for filtered rssi and estimated positions:
 ```
 python wifi_rssi_filter.py
 ```
