@@ -2,40 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Indoor Positioning Heatmap For Supermarket</title>
-  <link href="{{ url_for('static', filename='output.css') }}" rel="stylesheet">
+  <title>Indoor Positioning Heatmap</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-white flex flex-row min-h-screen p-6 gap-6">
+<body class="bg-gray-100 min-h-screen flex flex-col">
 
-  <!-- Left Panel -->
-  <div class="flex flex-col w-1/5 space-y-6">
-    <h1 class="text-4xl font-extrabold text-black leading-tight">
-      Indoor<br>Positioning<br>Heatmap For<br>Supermarket
+  <!-- Header -->
+  <header class="bg-white shadow px-8 py-5 flex justify-between items-center">
+    <h1 class="text-2xl font-extrabold text-gray-800">
+      Indoor Positioning Heatmap <span class="text-blue-500">for Supermarket</span>
     </h1>
-
-    <div class="mt-4">
-      <label for="modeSelector" class="text-lg font-semibold text-black">Select Source:</label>
-      <select id="modeSelector" class="mt-2 block border border-gray-300 rounded p-2">
-        <option value="ble" selected>BLE</option>
-        <option value="wifi">WiFi</option>
-        <option value="hybrid">Hybrid (BLE + WiFi)</option>
+    <div class="flex items-center gap-3">
+      <label for="modeSelector" class="text-sm font-semibold text-gray-700">Data Source:</label>
+      <select id="modeSelector" class="bg-white border border-gray-300 text-sm rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <option value="ble">📍 BLE</option>
+        <option value="wifi">🌐 WiFi</option>
+        <option value="hybrid">🔁 Hybrid (BLE + WiFi)</option>
       </select>
     </div>
-  </div>
+  </header>
 
-  <!-- Right Panel: Heatmap Container -->
-  <div class="flex-grow max-w-[1200px]">
-    <div id="heatmapContainer" class="w-full h-auto"></div>
-  </div>
+  <!-- Main Content -->
+  <main class="flex-1 p-6">
+    <div id="heatmapContainer" class="rounded-xl shadow-lg border border-gray-200 bg-white overflow-hidden w-full" style="min-height: 800px;"></div>
+  </main>
 
-  <!-- Load heatmap from Flask into iframe -->
+
+
+  <!-- Heatmap Script with iframe injection -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const container = document.getElementById("heatmapContainer");
       const selector = document.getElementById("modeSelector");
 
       function escapeHTML(str) {
-        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
       }
 
       function loadHeatmap(mode = "ble") {
@@ -50,9 +58,9 @@
         loadHeatmap(selector.value);
       });
 
-      // Initial load
       loadHeatmap("ble");
     });
   </script>
+
 </body>
 </html>
