@@ -3,9 +3,9 @@ import numpy as np
 
 # Sample data (update these with your actual results)
 methods = ['BLE', 'Wi-Fi', 'Hybrid']
-mean_errors = [5.91, 9.00, 3.66]
-median_errors = [5.23, 9.44, 3.50]
-mean_latencies = [0.0002, 0.0015, 1.0874]  # in milliseconds
+mean_errors = [5.24, 8.93, 4.67]
+median_errors = [4.60, 9.23, 4.73]
+mean_latencies = [0.0002, 0.0033, 1.0925]  # in milliseconds
 
 # Set width of bars
 bar_width = 0.25
