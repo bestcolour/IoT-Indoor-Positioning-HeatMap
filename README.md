@@ -44,3 +44,29 @@ client.username_pw_set("mqttusername", "mqttpassword")
 client.connect("hostname", 8883)
 ```
 Optionally, add client.tls_insecure_set(True) if using IP instead of hostname and the CN doesn't match.
+
+#### 6. M5StickCPlus
+The TLS certificate information is hardcoded in the .ino files. Simply replace them with your own or fill up this template to be used when connecting to a mosquitto broker.
+
+**Template**
+``` C
+
+const char* ca_cert = R"(
+-----BEGIN CERTIFICATE-----
+<certificate key>
+-----END CERTIFICATE-----
+)";
+
+const char* client_cert = R"(
+-----BEGIN CERTIFICATE-----
+<certificate key>
+-----END CERTIFICATE-----
+)";
+
+const char* client_key = R"(
+-----BEGIN PRIVATE KEY-----
+<certificate key>
+-----END PRIVATE KEY-----
+)";
+
+```
