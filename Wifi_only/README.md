@@ -93,3 +93,8 @@ sudo nmcli connection modify "kys_dont_kys" connection.autoconnect yes
 ```
 sudo chmod +x hotspot_mode.sh
 ```
+
+### Step 8: Run the WiFi_subscriber.py on the central processing server 
+```
+python WiFi_subscriber.py
+```
