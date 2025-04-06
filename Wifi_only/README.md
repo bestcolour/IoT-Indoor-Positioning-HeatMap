@@ -59,7 +59,7 @@ sudo nmcli connection up PiAP
 ```
 sudo nano ./ap_mode.sh
 ```
-Paste this inside
+Paste this inside (change `kys_dont_kys` to your own network ssid)
 ```
 #!/bin/bash
 
@@ -80,7 +80,7 @@ sudo chmod +x ap_mode.sh
 ```
 sudo nano ./hotspot_mode.sh
 ```
-Paste this inside
+Paste this inside (change `kys_dont_kys` and its password to your own network ssid and password)
 ```
 #!/bin/bash
 
@@ -100,10 +100,10 @@ python WiFi_subscriber.py
 ```
 
 ## To load the latest estimated position data:
-need to run the below 2 commands to keep fetching the latest datas:
+Run the below 2 commands to fetch the latest datas for filtered rssi and estimated positions:
 ```
-python Wifi_only/wifi_rssi_filter.py
+python wifi_rssi_filter.py
 ```
 ```
-python Wifi_only/wifi_position_estimator.py
+python wifi_position_estimator.py
 ```

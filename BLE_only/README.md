@@ -111,10 +111,10 @@ python BLE_subscriber.py
 
 
 ## To load the latest estimated position data:
-need to run the below 2 commands to keep fetching the latest datas:
+Run the below 2 commands to fetch the latest datas for filtered rssi and estimated positions:
 ```
-python BLE_only/rssi_filter.py
+python rssi_filter.py
 ```
 ```
-python BLE_only/position_estimator.py
+python position_estimator.py
 ```
