@@ -3,12 +3,13 @@ import os
 
 # List of paths to your positioning.db files
 DB_PATHS = [
-    "BLE_only/positioning.db",
+    # "BLE_only/positioning.db",
     # "Wifi_only/positioning.db",
-    # "Hybrid/positioning.db"
+    "BLE+Wifi/positioning.db"
 ]
 
 # Ground truth data (MAC, x, y)
+# Wifi
 # GROUND_TRUTH = [
 #     ('4c:75:25:cb:86:8e', 1.24, 1.24), # Alicia
 #     ('ac:0b:fb:6f:9d:fe', 2.48, 4.03), # KeeShen
@@ -17,12 +18,22 @@ DB_PATHS = [
 #     ('4c:75:25:cb:8e:32', 4.34, 7.44), # Pierre
 # ]
 
+# BLE
+# GROUND_TRUTH = [
+#     ('M5Stick_BLE_Alicia', 1.24, 1.24), # Alicia
+#     ('M5Stick_BLE_KeeShen', 2.48, 4.03), # KeeShen
+#     ('M5Stick_BLE_EnThong', 1.24, 6.82), # En Thong
+#     ('M5Stick_BLE_XinYi', 4.34, 0.62), # Xin Yi
+#     ('M5Stick_BLE_Pierre', 4.34, 7.44), # Pierre
+# ]
+
+# Hybrid
 GROUND_TRUTH = [
-    ('M5Stick_BLE_Alicia', 1.24, 1.24), # Alicia
-    ('M5Stick_BLE_KeeShen', 2.48, 4.03), # KeeShen
-    ('M5Stick_BLE_EnThong', 1.24, 6.82), # En Thong
-    ('M5Stick_BLE_XinYi', 4.34, 0.62), # Xin Yi
-    ('M5Stick_BLE_Pierre', 4.34, 7.44), # Pierre
+    ('M5_Alicia', 1.24, 1.24), # Alicia
+    ('M5_KeeShen', 2.48, 4.03), # KeeShen
+    ('M5_EnThong', 1.24, 6.82), # En Thong
+    ('M5_XinYi', 4.34, 0.62), # Xin Yi
+    ('M5_Pierre', 4.34, 7.44), # Pierre
 ]
 
 def insert_ground_truth(db_path):
