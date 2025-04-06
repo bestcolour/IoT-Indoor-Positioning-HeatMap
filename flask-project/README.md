@@ -8,16 +8,31 @@ This project visualizes indoor positioning data (BLE / WiFi / Hybrid) using inte
 
 ### 1.  Install Dependencies
 
-Make sure you have Python  installed.
+Make sure you have Python installed.
 
-You can install the required packages using:
+Install the required packages with:
 
 ```bash
 pip install flask pandas numpy plotly pillow scipy
+```
 
-After installing dependencies, run the Flask development server:
+### 2. ▶ Run the Flask App
+
+After installing dependencies, run the development server using:
 
 ```bash
 python app.py
+```
+
+Then open your browser and navigate to:
+
+```
+http://127.0.0.1:5000
+```
+
+You should see the heatmap interface with a dropdown to toggle between BLE, WiFi, and Hybrid data sources.
+
+---
+
 
 
