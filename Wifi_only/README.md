@@ -94,7 +94,7 @@ sudo nmcli connection modify "kys_dont_kys" connection.autoconnect yes
 sudo chmod +x hotspot_mode.sh
 ```
 
-## To run the 2 scripts:
+## To load the latest estimated position data:
 need to run the below 2 commands to keep fetching the latest datas:
 ```
 python Wifi_only/wifi_rssi_filter.py
