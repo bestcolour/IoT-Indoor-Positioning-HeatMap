@@ -3,27 +3,55 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <time.h>
+#include <BLEDevice.h>
+#include <BLEUtils.h>
+#include <BLEBeacon.h>
+#include <BLEServer.h>
 
 // === Wi-Fi credentials ===
-const char* ssid     = "kys_dont_kys";
+const char* ssid = "kys_dont_kys";
 const char* password = "killmepls";
 
-// === MQTT broker settings ===
-const char* mqtt_server   = "192.168.33.148";
-const int   mqtt_port     = 1883;
-const char* mqtt_user     = "team19";
+// === MQTT broker config ===
+const char* mqtt_server = "192.168.33.148";
+const int mqtt_port = 1883;
+const char* mqtt_user = "team19";
 const char* mqtt_password = "test123";
-const char* mqtt_topic    = "wifi/rssi";
+const char* mqtt_topic_wifi = "wifi/rssi";
 
-// === AP Scanner identity ===
-const char* DEVICE_NAME = "M5StickCPlus-XinYi";
+// === Device Identity ===
+const char* DEVICE_NAME = "M5StickCPlus-EnThong";
+
+// === BLE Beacon UUID (per team/personal) ===
+#define BEACON_UUID "12345678-9012-3456-7890-1234567890AB"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-const unsigned long publishInterval = 6000;  // 6 seconds
+// === BLE beacon setup ===
+void startBLEBeacon() {
+  BLEDevice::init(DEVICE_NAME);
+  BLEServer* pServer = BLEDevice::createServer();
+  BLEBeacon oBeacon = BLEBeacon();
+  oBeacon.setManufacturerId(0x4C00);
+  oBeacon.setProximityUUID(BLEUUID(BEACON_UUID));
+  oBeacon.setMajor(1);
+  oBeacon.setMinor(1);
 
-// === Connect to Wi-Fi ===
+  BLEAdvertisementData oAdvertisementData;
+  std::string strServiceData = "";
+  strServiceData += (char)26;
+  strServiceData += (char)0xFF;
+  strServiceData += oBeacon.getData();
+  oAdvertisementData.addData(strServiceData);
+
+  BLEAdvertising* pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->setAdvertisementData(oAdvertisementData);
+  pAdvertising->start();
+
+  Serial.println("BLE Beacon Started");
+}
+
 void connectToWiFi() {
   M5.Lcd.println("Connecting to WiFi...");
   WiFi.begin(ssid, password);
@@ -34,30 +62,27 @@ void connectToWiFi() {
   M5.Lcd.println("\nWiFi Connected!");
   M5.Lcd.println(WiFi.localIP());
 
-  configTime(0, 0, "time.google.com");  // Set up NTP
-  M5.Lcd.println("Syncing time...");
+  configTime(28800, 0, "time.google.com");  // UTC+8 for Singapore
   time_t now = time(nullptr);
   while (now < 100000) {
     delay(500);
     now = time(nullptr);
   }
-  M5.Lcd.println("Time synced.");
+  M5.Lcd.println("Time synced");
 }
 
-// === Connect to MQTT ===
 void connectToMQTT() {
   M5.Lcd.println("Connecting to MQTT...");
   while (!client.connected()) {
-    if (client.connect("M5StickClient", mqtt_user, mqtt_password)) {
+    if (client.connect(DEVICE_NAME, mqtt_user, mqtt_password)) {
       M5.Lcd.println("MQTT Connected");
     } else {
-      M5.Lcd.printf("MQTT failed, rc=%d. Retrying...\n", client.state());
+      M5.Lcd.printf("MQTT failed (%d)\n", client.state());
       delay(2000);
     }
   }
 }
 
-// === Get current timestamp ===
 String getTimestamp() {
   time_t now = time(nullptr);
   struct tm* t = localtime(&now);
@@ -70,53 +95,49 @@ String getTimestamp() {
 
 void setup() {
   M5.begin();
-  M5.Lcd.setRotation(3);
+  M5.Lcd.setRotation(3);  // Landscape
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextSize(1);
+  M5.Lcd.setTextColor(WHITE);
   M5.Lcd.setCursor(0, 0);
-  M5.Lcd.println("Wi-Fi RSSI MQTT Scanner");
+  M5.Lcd.println("Initializing...");
+  M5.Lcd.println(DEVICE_NAME);
 
-  WiFi.mode(WIFI_STA);
   connectToWiFi();
-
   client.setServer(mqtt_server, mqtt_port);
   connectToMQTT();
+  startBLEBeacon();
+
+  // Clear and show final screen after setup
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(0, 0);
+  M5.Lcd.setTextSize(1);
+  M5.Lcd.setTextColor(WHITE);
+  M5.Lcd.println(DEVICE_NAME);
+  M5.Lcd.println("In BLE Beacon mode");
 }
 
 void loop() {
-  unsigned long startCycle = millis();
+  if (!client.connected()) connectToMQTT();
+  client.loop();
 
-  // Show "Scanning" status
-  M5.Lcd.fillScreen(BLACK);
-  M5.Lcd.setTextColor(GREEN);
-  M5.Lcd.setTextSize(3);
-  M5.Lcd.setCursor(20, 20);
-  M5.Lcd.println("Scanning");
-
-  M5.Lcd.setTextSize(1);
-  M5.Lcd.setCursor(20, 60);
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.println(DEVICE_NAME);
-
-  // Start synchronous scan
-  int n = WiFi.scanNetworks();  // blocking
-
-  M5.Lcd.fillScreen(BLACK);
-  M5.Lcd.setCursor(0, 0);
-  M5.Lcd.printf("Found %d networks\n", n);
+  int n = WiFi.scanNetworks();
+  M5.Lcd.fillRect(0, 40, 135, 90, BLACK);  // Clear only the lower part for RSSI values
+  M5.Lcd.setCursor(0, 40);
 
   for (int i = 0; i < n; ++i) {
     String ssidName = WiFi.SSID(i);
 
-    if (ssidName == "RPi_AP_Pierre" || ssidName == "RPi_AP_Alicia" ||
-        ssidName == "RPi_AP_EnThong" || ssidName == "RPi_AP_XY") {
+    if (ssidName == "RPi_Hybrid_Pierre" || ssidName == "RPi_Hybrid_Alicia" ||
+        ssidName == "RPi_Hybrid_XY" || ssidName == "RPi_Hybrid_EnThong") {
 
       String bssid = WiFi.BSSIDstr(i);
       int rssi = WiFi.RSSI(i);
+      time_t now = time(nullptr);
 
       DynamicJsonDocument doc(256);
       doc["timestamp"] = getTimestamp();
-      doc["timestamp_epoch"] = time(nullptr); // epoch timestamp to calculate latency
+      doc["timestamp_epoch"] = now;
       doc["ap_id"] = ssidName;
       doc["mac_address"] = bssid;
       doc["device_name"] = DEVICE_NAME;
@@ -124,26 +145,13 @@ void loop() {
 
       char payload[256];
       serializeJson(doc, payload);
+      client.publish(mqtt_topic_wifi, payload);
 
-      if (!client.connected()) {
-        connectToMQTT();
-      }
-      client.loop();
-      if (client.publish(mqtt_topic, payload)) {
-        Serial.println("Published:");
-        Serial.println(payload);
-      } else {
-        Serial.println("MQTT publish failed!");
-      }
-
-      M5.Lcd.printf("%s (%d dBm)\n", ssidName.c_str(), rssi);
-      delay(100);  // pacing between publishes
+      // Display RSSI info
+      M5.Lcd.printf("%s\n", ssidName.c_str());
+      M5.Lcd.printf("RSSI: %d dBm\n", rssi);
     }
   }
 
-  // Wait out remaining time to hit 6 seconds
-  unsigned long elapsed = millis() - startCycle;
-  if (elapsed < publishInterval) {
-    delay(publishInterval - elapsed);
-  }
+  delay(6000);
 }
