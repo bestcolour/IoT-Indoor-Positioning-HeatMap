@@ -14,11 +14,6 @@ This project was developed as part of the Year 2 CSC2106 Internet of Things modu
 pip install -r requirements.txt
 ```
 
-## To run Flask:
-```
-npm run start
-```
-
 ## TLS Setup for MQTT Secure Communication (Mosquitto Broker + Clients)
 This guide walks you through setting up TLS 1.3 for Mosquitto MQTT communication using X.509 certificates and a trusted local Certificate Authority (CA). This setup ensures encrypted communication, integrity, and authentication between the broker and clients.
 
@@ -44,7 +39,7 @@ scp <username>@<hostname>:/etc/mosquitto/certs/ca.crt .
 scp <username>@<hostname>:/etc/mosquitto/certs/client.crt .
 scp <username>@<hostname>:/etc/mosquitto/certs/client.key .
 ```
-Place them in a folder like certs/ in your project directory.
+Place them in a folder like `certs/` in your project directory (The `certs/` folder should be at the same folder as your publisher/subscriber script).
 
 #### 5. Update Client Code to Use TLS
 ```
