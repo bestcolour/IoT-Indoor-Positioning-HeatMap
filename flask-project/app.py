@@ -1,4 +1,3 @@
-
 import os
 import sqlite3
 import base64
@@ -46,19 +45,27 @@ def plotly_heatmap():
     df = pd.DataFrame(rows, columns=["x", "y"])
     if df.empty:
         return "No data found", 404
-    df["value"] = 1
 
+    # Load and resize image for consistency
     img_path = os.path.join("static", "Supermarket-Mockup-Layout.png")
     img = Image.open(img_path)
+    img = img.resize((1300, int(1300 * img.height / img.width)))
     width, height = img.size
 
+    # Normalize and scale coordinates
     df["x"] = (df["x"] - df["x"].min()) / (df["x"].max() - df["x"].min()) * width
     df["y"] = (df["y"] - df["y"].min()) / (df["y"].max() - df["y"].min()) * height
 
+    # Clamp values inside canvas
+    df["x"] = df["x"].clip(lower=0, upper=width)
+    df["y"] = df["y"].clip(lower=0, upper=height)
+
+    # KDE grid with padding
+    padding = 20
     xy = np.vstack([df["x"], df["y"]])
     kde = gaussian_kde(xy, bw_method=0.1)
-    xgrid = np.linspace(0, width, 300)
-    ygrid = np.linspace(0, height, 300)
+    xgrid = np.linspace(padding, width - padding, 300)
+    ygrid = np.linspace(padding, height - padding, 300)
     xmesh, ymesh = np.meshgrid(xgrid, ygrid)
     positions = np.vstack([xmesh.ravel(), ymesh.ravel()])
     zvals = np.reshape(kde(positions).T, xmesh.shape)
@@ -96,15 +103,31 @@ def plotly_heatmap():
     fig.update_layout(
         images=[dict(
             source="data:image/png;base64," + encode_image(img),
-            xref="x", yref="y",
-            x=0, y=0,
-            sizex=width, sizey=height,
+            xref="x",
+            yref="y",
+            x=0,
+            y=0,
+            sizex=width,
+            sizey=height,
             sizing="stretch",
             opacity=1.0,
             layer="below"
         )],
-        xaxis=dict(range=[0, width], showticklabels=False, showgrid=False, zeroline=False),
-        yaxis=dict(range=[height, 0], showticklabels=False, showgrid=False, zeroline=False),
+        xaxis=dict(
+            range=[0, width],
+            showticklabels=False,
+            showgrid=False,
+            zeroline=False,
+            scaleanchor='y',
+            constrain='domain'
+        ),
+        yaxis=dict(
+            range=[height, 0],
+            showticklabels=False,
+            showgrid=False,
+            zeroline=False,
+            scaleratio=1
+        ),
         margin=dict(l=0, r=0, t=0, b=0),
         width=width,
         height=height
