@@ -27,7 +27,7 @@ def calculate_accuracy(table_name, db_path, rssi_table):
             WHERE latency >= 0
             GROUP BY device_name
         ) r ON e.device_name = r.device_name
-        LIMIT 300
+        LIMIT 250
         """
         rows = cursor.execute(query).fetchall()
 
@@ -50,9 +50,9 @@ def calculate_accuracy(table_name, db_path, rssi_table):
 
             if latencies:
                 mean_latency = sum(latencies) / len(latencies)
-                median_latency = sorted(latencies)[len(latencies) // 2]
+                # median_latency = sorted(latencies)[len(latencies) // 2]
                 print(f"→ Mean Latency: {mean_latency:.4f} ms")
-                print(f"→ Median Latency: {median_latency:.4f} ms\n")
+                # print(f"→ Median Latency: {median_latency:.4f} ms\n")
             else:
                 print("→ No latency data found.\n")
         else:
@@ -70,15 +70,15 @@ if __name__ == "__main__":
 
     # Default values based on mode
     if args.mode == "wifi":
-        db_path = "Wifi_only/positioning.db"
+        db_path = "../Wifi_only/positioning.db"
         table_name = "wifi_estimated_positions"
         rssi_table = "wifi_rssi"
     elif args.mode == "ble":
-        db_path = "BLE_only/positioning.db"
+        db_path = "../BLE_only/positioning.db"
         table_name = "estimated_positions"
         rssi_table = "filtered_rssi"
     elif args.mode == "hybrid":
-        db_path = "BLE+Wifi/positioning.db"
+        db_path = "../BLE+Wifi/positioning.db"
         table_name = "hybrid_estimated_positions"
         rssi_table = "hybrid_filtered_rssi"
     calculate_accuracy(table_name, db_path, rssi_table)
