@@ -59,7 +59,7 @@ sudo nmcli connection up PiAP
 ```
 sudo nano ./ap_mode.sh
 ```
-Paste this inside
+Paste this inside (change `kys_dont_kys` to your own network ssid)
 ```
 #!/bin/bash
 
@@ -80,7 +80,7 @@ sudo chmod +x ap_mode.sh
 ```
 sudo nano ./hotspot_mode.sh
 ```
-Paste this inside
+Paste this inside (change `kys_dont_kys` and its password to your own network ssid and password)
 ```
 #!/bin/bash
 
