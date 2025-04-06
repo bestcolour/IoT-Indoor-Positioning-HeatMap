@@ -22,7 +22,7 @@ const char* mqtt_password = "test123";
 const char* mqtt_topic_wifi = "wifi/rssi";
 
 // === Device Identity ===
-const char* DEVICE_NAME = "M5StickCPlus-EnThong";
+const char* DEVICE_NAME = "M5StickCPlus-KeeShen"; // CHANGE THIS FOR EACH M5STICK
 
 // === BLE Beacon UUID (per team/personal) ===
 #define BEACON_UUID "12345678-9012-3456-7890-1234567890AB"
