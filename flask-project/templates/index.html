@@ -1,24 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>BLE Indoor Positioning Heatmap</title>
+  <meta charset="UTF-8">
+  <title>Indoor Positioning Heatmap</title>
 
-    <!-- Tailwind CSS -->
-    <link href="{{ url_for('static', filename='output.css') }}" rel="stylesheet">
-
-    <!-- Heatmap.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/heatmap.js"></script>
-
-    <!-- Custom JavaScript for Heatmap -->
-    <script defer src="{{ url_for('static', filename='heatmap.js') }}"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
 
-<body class="bg-gray-100 flex flex-col items-center justify-center h-screen">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">BLE Indoor Positioning Heatmap</h1>
+  <!-- Header -->
+  <header class="bg-white shadow px-8 py-5 flex justify-between items-center">
+    <h1 class="text-2xl font-extrabold text-gray-800">
+      Indoor Positioning Heatmap <span class="text-blue-500">for Supermarket</span>
+    </h1>
+    <div class="flex items-center gap-3">
+      <label for="modeSelector" class="text-sm font-semibold text-gray-700">Data Source:</label>
+      <select id="modeSelector" class="bg-white border border-gray-300 text-sm rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <option value="ble">📍 BLE</option>
+        <option value="wifi">🌐 WiFi</option>
+        <option value="hybrid">🔁 Hybrid (BLE + WiFi)</option>
+      </select>
+    </div>
+  </header>
 
-    <div id="heatmapContainer" style="width: 1200px; height: 800px; position: relative; background: lightgray; border: 2px solid black;"></div>
+  <!-- Main Content -->
+  <main class="flex-1 p-6">
+    <div id="heatmapContainer" class="rounded-xl shadow-lg border border-gray-200 bg-white overflow-hidden w-full" style="min-height: 800px;"></div>
+  </main>
+
+
+
+  <!-- Heatmap Script with iframe injection -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const container = document.getElementById("heatmapContainer");
+      const selector = document.getElementById("modeSelector");
+
+      function escapeHTML(str) {
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function loadHeatmap(mode = "ble") {
+        fetch(`/plotly-heatmap?mode=${mode}`)
+          .then(res => res.text())
+          .then(html => {
+            container.innerHTML = `<iframe style="width:100%; height:100vh; border:none;" srcdoc='${escapeHTML(html)}'></iframe>`;
+          });
+      }
+
+      selector.addEventListener("change", () => {
+        loadHeatmap(selector.value);
+      });
+
+      loadHeatmap("ble");
+    });
+  </script>
+
 </body>
-
 </html>
