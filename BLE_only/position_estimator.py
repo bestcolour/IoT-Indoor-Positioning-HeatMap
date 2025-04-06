@@ -179,7 +179,7 @@ def store_positions(positions):
 # Entry point
 if __name__ == "__main__":
     create_position_table()
-    print("==== Estimating Positions (±2s Window, ==3 APs) ====")
+    print("==== Estimating Positions ====")
     try:
         results = estimate_positions()
         store_positions(results)

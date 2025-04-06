@@ -160,7 +160,7 @@ def estimate_positions():
                     mac = find_mac_for_device_at_time(device_name, ts_str)
                     if mac:
                         estimated[(device_name, mac, ts_str)] = (x, y)
-                        print(f"{device_name} ({mac}) @ {ts_str}: X={x:.2f}, Y={y:.2f}")
+                        # print(f"{device_name} ({mac}) @ {ts_str}: X={x:.2f}, Y={y:.2f}")
                     else:
                         print(f"No MAC found for {device_name} @ {ts_str}")
                 else:
@@ -205,7 +205,7 @@ def find_mac_for_device_at_time(device_name, timestamp_str):
 # 7) Main
 if __name__ == "__main__":
     create_position_table()
-    print("==== Estimating Positions (±2s Window, ≥3 APs) ====")
+    print("==== Estimating Positions ====")
     try:
         results = estimate_positions()
         store_positions(results)
