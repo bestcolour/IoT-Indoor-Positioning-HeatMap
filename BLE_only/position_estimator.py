@@ -22,8 +22,13 @@ AP_COORDINATES = {
 def create_position_table():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
+
+     # Drop the table if it exists
+    cursor.execute("DROP TABLE IF EXISTS estimated_positions")
+    print(f"Dropped estimated_positions table...")
+
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS estimated_positions (
+        CREATE TABLE estimated_positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             mac TEXT,
             device_name TEXT,

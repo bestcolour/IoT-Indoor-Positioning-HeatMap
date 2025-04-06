@@ -44,10 +44,13 @@ def create_tables():
             rssi REAL
         )
     """)
+
+    # Drop and recreate wifi_filtered_rssi table
+    cursor.execute("DROP TABLE IF EXISTS wifi_filtered_rssi")
     
     # Create filtered_rssi table if it doesn't exist
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS wifi_filtered_rssi (
+        CREATE TABLE wifi_filtered_rssi (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME,
             ap_id TEXT,

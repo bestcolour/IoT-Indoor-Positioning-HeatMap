@@ -21,8 +21,12 @@ AP_COORDINATES = {
 def create_position_table():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
+    
+    # Drop and recreate wifi_estimated_positions table
+    cursor.execute("DROP TABLE IF EXISTS wifi_estimated_positions")
+
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS wifi_estimated_positions (
+        CREATE TABLE wifi_estimated_positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             mac TEXT,
             x REAL,

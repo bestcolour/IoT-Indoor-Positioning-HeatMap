@@ -43,10 +43,14 @@ def create_tables():
             rssi REAL
         )
     """)
+
+    # Drop and recreate filtered_rssi table
+    cursor.execute("DROP TABLE IF EXISTS filtered_rssi")
+    print(f"Dropped filtered_rssi table...")
     
     # Create filtered_rssi table if it doesn't exist
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS filtered_rssi (
+        CREATE TABLE filtered_rssi (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME,
             ap_id TEXT,
