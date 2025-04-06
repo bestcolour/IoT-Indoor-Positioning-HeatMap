@@ -1,5 +1,18 @@
 # IoT-Indoor-Positioning-HeatMap
-Year 2 CSC2106 Internet of Things project. A study on indoor positioning system that uses trilateration and filtering/smoothing algorithms on BLE and Wifi Signals to compare the effectiveness of BLE/Wifi/Hybrid of both in a supermarket context
+This project was developed as part of the Year 2 CSC2106 Internet of Things module. It explores an indoor positioning system that utilizes trilateration and filtering/smoothing algorithms applied to BLE and Wi-Fi signals. The goal is to evaluate the effectiveness of BLE-only, Wi-Fi-only, and Hybrid (BLE + Wi-Fi) approaches in tracking shoppers within a simulated supermarket environment.
+
+## Project Structure
+- `BLE_only/` – Code for BLE-based setup (scanning, publishing, and subscribing)
+- `Wifi_only/` – Code for Wi-Fi-based setup (RSSI scanning and publishing)
+- `BLE+Wifi/` – Code for the hybrid setup (combined BLE and Wi-Fi positioning)
+- `flask-project/` – Web dashboard built with Flask to visualize collected data and heatmaps
+- `setup_tls_with_client.sh` – Script to configure TLS for Mosquitto MQTT broker and generate client/server certificates
+- `positioning.db` – SQLite database for storing real-time RSSI data and processed results
+
+## Install the required dependencies
+```
+pip install -r requirements.txt
+```
 
 ## To run Flask:
 ```
