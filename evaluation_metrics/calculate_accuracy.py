@@ -27,7 +27,7 @@ def calculate_accuracy(table_name, db_path, rssi_table):
             WHERE latency >= 0
             GROUP BY device_name
         ) r ON e.device_name = r.device_name
-        LIMIT 250
+        LIMIT 400
         """
         rows = cursor.execute(query).fetchall()
 
