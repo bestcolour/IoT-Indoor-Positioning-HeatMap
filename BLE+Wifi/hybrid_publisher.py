@@ -5,11 +5,16 @@ from bluepy.btle import Scanner
 import socket
 
 # MQTT Config
-MQTT_BROKER = "192.168.33.148"
-MQTT_PORT = 1883
+MQTT_BROKER = "keshleepi.local"  # Use hostname
+MQTT_PORT = 8883  # TLS port
 MQTT_TOPIC = "ble/rssi"
 MQTT_USER = "team19"
 MQTT_PASSWORD = "test123"
+
+# TLS Certificate Paths
+CA_CERT = "certs/ca.crt"
+CLIENT_CERT = "certs/client.crt"
+CLIENT_KEY = "certs/client.key"
 
 # MAC address to device name mapping
 DEVICE_NAME_MAP = {
@@ -23,8 +28,12 @@ DEVICE_NAME_MAP = {
 TARGET_MACS = list(DEVICE_NAME_MAP.keys())
 AP_IDENTIFIER = socket.gethostname()
 
-# Initialize MQTT client
+# Initialize MQTT client with TLS
 mqtt_client = mqtt.Client()
+mqtt_client.tls_set(ca_certs=CA_CERT, certfile=CLIENT_CERT, keyfile=CLIENT_KEY)
+# Optionally disable hostname check if using IP instead of CN
+# mqtt_client.tls_insecure_set(True)
+
 mqtt_client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
 mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
 

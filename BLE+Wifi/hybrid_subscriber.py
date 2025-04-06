@@ -4,11 +4,16 @@ import time
 import sqlite3
 
 # MQTT Config
-MQTT_BROKER = "192.168.33.148"
-MQTT_PORT = 1883
+MQTT_BROKER = "keshleepi.local"  # Use hostname
+MQTT_PORT = 8883  # TLS port
 MQTT_TOPICS = [("wifi/rssi", 0), ("ble/rssi", 0)]
 MQTT_USERNAME = "team19"
 MQTT_PASSWORD = "test123"
+
+# TLS Certificate Paths
+CA_CERT = "certs/ca.crt"
+CLIENT_CERT = "certs/client.crt"
+CLIENT_KEY = "certs/client.key"
 
 # SQLite DB
 DATABASE = "positioning.db"
@@ -93,7 +98,7 @@ tables_to_clear = [
 
 for table in tables_to_clear:
     cursor.execute(f"DELETE FROM {table}")
-    cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{table}'")  # Reset autoincrement
+    cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{table}'")
 conn.commit()
 print("Cleared all tables on startup.")
 
@@ -144,8 +149,12 @@ def on_message(client, userdata, msg):
     except Exception as e:
         print(f"Unexpected Error: {e}")
 
-# === Start MQTT Client ===
+# === Start MQTT Client with TLS ===
 client = mqtt.Client()
+client.tls_set(ca_certs=CA_CERT, certfile=CLIENT_CERT, keyfile=CLIENT_KEY)
+# Optionally allow IP address if hostname validation fails:
+# client.tls_insecure_set(True)
+
 client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 client.on_connect = on_connect
 client.on_message = on_message
