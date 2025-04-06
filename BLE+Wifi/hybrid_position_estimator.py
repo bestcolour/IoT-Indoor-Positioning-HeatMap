@@ -135,7 +135,7 @@ def estimate_positions():
                         (device_name, x, y, timestamp, method)
                         VALUES (?, ?, ?, ?, ?)
                     """, (device, x, y, ts_str, "trilateration"))
-                    print(f"{device} @ {ts_str} → X={x:.2f}, Y={y:.2f}")
+                    # print(f"{device} @ {ts_str} → X={x:.2f}, Y={y:.2f}")
 
     conn.commit()
     conn.close()
