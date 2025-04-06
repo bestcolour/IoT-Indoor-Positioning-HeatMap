@@ -1,3 +1,4 @@
+
 import os
 import sqlite3
 import base64
@@ -14,6 +15,7 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BLE_DB = os.path.join(BASE_DIR, "../BLE_only/positioning.db")
 WIFI_DB = os.path.join(BASE_DIR, "../Wifi_only/positioning.db")
+BLEWIFI_DB = os.path.join(BASE_DIR, "../BLE+Wifi/positioning.db")
 
 @app.route("/")
 def index():
@@ -22,8 +24,18 @@ def index():
 @app.route("/plotly-heatmap")
 def plotly_heatmap():
     mode = request.args.get("mode", "ble").lower()
-    db_path = BLE_DB if mode == "ble" else WIFI_DB
-    table = "estimated_positions" if mode == "ble" else "wifi_estimated_positions"
+
+    if mode == "ble":
+        db_path = BLE_DB
+        table = "estimated_positions"
+    elif mode == "wifi":
+        db_path = WIFI_DB
+        table = "wifi_estimated_positions"
+    elif mode == "hybrid":
+        db_path = BLEWIFI_DB
+        table = "hybrid_estimated_positions"
+    else:
+        return "Invalid mode", 400
 
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -40,24 +52,20 @@ def plotly_heatmap():
     img = Image.open(img_path)
     width, height = img.size
 
-    # Normalize x/y to image size
     df["x"] = (df["x"] - df["x"].min()) / (df["x"].max() - df["x"].min()) * width
     df["y"] = (df["y"] - df["y"].min()) / (df["y"].max() - df["y"].min()) * height
 
-    # KDE
     xy = np.vstack([df["x"], df["y"]])
-    kde = gaussian_kde(xy, bw_method=0.1)  # Wider spread
+    kde = gaussian_kde(xy, bw_method=0.1)
     xgrid = np.linspace(0, width, 300)
     ygrid = np.linspace(0, height, 300)
     xmesh, ymesh = np.meshgrid(xgrid, ygrid)
     positions = np.vstack([xmesh.ravel(), ymesh.ravel()])
     zvals = np.reshape(kde(positions).T, xmesh.shape)
 
-    # Normalize and mask
     zvals = zvals / np.nanmax(zvals)
     zvals[zvals < 0.01] = np.nan
 
-    # Plot
     fig = go.Figure()
     fig.add_trace(go.Heatmap(
         z=zvals,
@@ -65,12 +73,16 @@ def plotly_heatmap():
         y=ygrid,
         colorscale=[
             [0.0, "rgb(0, 0, 255)"],
+            [0.05, "rgb(0, 128, 255)"],
             [0.1, "rgb(0, 255, 255)"],
             [0.2, "rgb(0, 255, 128)"],
-            [0.4, "rgb(0, 255, 0)"],
-            [0.6, "rgb(255, 255, 0)"],
-            [0.8, "rgb(255, 165, 0)"],
-            [0.9, "rgb(255, 69, 0)"],
+            [0.3, "rgb(0, 255, 0)"],
+            [0.4, "rgb(128, 255, 0)"],
+            [0.5, "rgb(255, 255, 0)"],
+            [0.6, "rgb(255, 200, 0)"],
+            [0.7, "rgb(255, 165, 0)"],
+            [0.8, "rgb(255, 100, 0)"],
+            [0.9, "rgb(255, 50, 0)"],
             [1.0, "rgb(255, 0, 0)"]
         ],
         zmin=0.01,
